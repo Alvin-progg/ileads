@@ -123,8 +123,9 @@ test("proficiency band boundaries land on the documented side", () => {
   // Raw totals chosen to sit exactly on each cut: 5/20=25%, 10/20=50%,
   // 15/20=75%, 17/20=85%. All are exact in binary floating point.
   const at = (total: number) => {
-    // Spread an arbitrary total across tasks within their maxima.
-    const maxima = RMA_G3.tasks.map((t) => t.max);
+    // Spread an arbitrary total across tasks within their maxima. Grade 3
+    // states every maximum, so none of these are null.
+    const maxima = RMA_G3.tasks.map((t) => t.max ?? 0);
     const out: number[] = [];
     let left = total;
     for (const m of maxima) {

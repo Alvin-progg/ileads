@@ -126,7 +126,12 @@ export type CrlaResult = {
 export type RmaTask = {
   key: string;
   label: string;
-  max: number;
+  /**
+   * Points available for this task, or null when the instrument defines a
+   * ceiling that no supplied file states (RMA grades 1-2). A null max means
+   * the task cannot be range-checked or scored for mastery.
+   */
+  max: number | null;
 };
 
 /** A proficiency band, matched against the score fraction (0–1). */
@@ -134,6 +139,7 @@ export type RmaLevelBand = Predicate & { label: string };
 
 export type RmaRules = {
   tasks: RmaTask[];
+  /** Points available across every task. Known for every grade. */
   max: number;
   /**
    * The instrument blanks the percentage (and therefore the level) when the
@@ -142,6 +148,11 @@ export type RmaRules = {
   blankWhenTotalZero: boolean;
   /** Fraction of a task's max that counts as mastery of that task. */
   taskMasteryThreshold: number;
+  /**
+   * Proficiency bands, in order. Empty when DepEd's cut-offs for the grade have
+   * not been transcribed: callers must report the level as not yet configured
+   * rather than computing one.
+   */
   levels: RmaLevelBand[];
 };
 
@@ -155,5 +166,6 @@ export type RmaResult = {
   /** Fraction 0–1. */
   percent: number | null;
   proficiencyLevel: string | null;
+  /** Keyed by task. Tasks with an unknown max are absent, never false. */
   taskMastery: Record<string, boolean>;
 };

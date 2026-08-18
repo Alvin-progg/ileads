@@ -52,3 +52,22 @@ export function getRmaRules(
 ): Promise<RmaRules> {
   return getRules<RmaRules>(supabase, "rma", gradeLevel, version);
 }
+
+/**
+ * Same as the getters above, but reports a missing instrument as null instead
+ * of throwing — for pages that would rather show "not configured for this
+ * grade" than a stack trace. A genuine query failure still throws: silently
+ * treating a broken connection as an unconfigured instrument would hide it.
+ */
+export async function tryGetRules<T>(
+  load: () => Promise<T>
+): Promise<T | null> {
+  try {
+    return await load();
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("has not been configured")) {
+      return null;
+    }
+    throw e;
+  }
+}

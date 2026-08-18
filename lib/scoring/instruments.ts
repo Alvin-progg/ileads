@@ -15,6 +15,7 @@ import type {
   CrlaLanguageRules,
   CrlaRules,
   RmaRules,
+  RmaTask,
 } from "./types.ts";
 
 // ---------------------------------------------------------------------------
@@ -236,13 +237,41 @@ export const CRLA_G3: CrlaRules = {
 };
 
 // ---------------------------------------------------------------------------
-// RMA — Grade 3 only
+// RMA
 // ---------------------------------------------------------------------------
-// Grades 1 and 2 have known task counts (35 pts across Tasks A-H, 25 pts
-// across Tasks A-K) but NO band formula in any supplied file, and Grades 4-6
-// use a different domain-based instrument entirely. Seeding a guessed ladder
-// for them would produce official-looking levels DepEd never defined, so they
-// are deliberately absent — the loader raises a clear error instead.
+// Grade 3 is the only fully transcribed instrument: per-task maxima and the
+// band formula both come from its scoresheet.
+//
+// Grades 1 and 2 are seeded with what the supplied Key Stage 1 workbook does
+// state — the task letters and the instrument total — and nothing else. Their
+// per-task maxima appear in no supplied file (`max: null`) and neither does a
+// band formula (`levels: []`), so a teacher can encode raw scores while the
+// proficiency level and per-task mastery report as not yet configured. A
+// guessed ladder would produce official-looking levels DepEd never defined.
+//
+// Grades 4–6 use a different domain-based instrument entirely and are absent;
+// the loader raises a clear error for them.
+
+/** Task letters with no stated maximum, for the grades that supply neither. */
+function lettersOnly(letters: string[]): RmaTask[] {
+  return letters.map((key) => ({ key, label: `Task ${key}`, max: null }));
+}
+
+export const RMA_G1: RmaRules = {
+  tasks: lettersOnly(["A", "B", "C", "D", "E", "F", "G", "H"]),
+  max: 35,
+  blankWhenTotalZero: true,
+  taskMasteryThreshold: 0.75,
+  levels: [],
+};
+
+export const RMA_G2: RmaRules = {
+  tasks: lettersOnly(["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"]),
+  max: 25,
+  blankWhenTotalZero: true,
+  taskMasteryThreshold: 0.75,
+  levels: [],
+};
 
 export const RMA_G3: RmaRules = {
   tasks: [
@@ -274,5 +303,7 @@ export const SEED_RULES = [
   { tool: "crla", grade_level: 1, version: "CRLA2v1", rules: CRLA_G1 },
   { tool: "crla", grade_level: 2, version: "CRLA2v1", rules: CRLA_G2 },
   { tool: "crla", grade_level: 3, version: "CRLA2v1", rules: CRLA_G3 },
+  { tool: "rma", grade_level: 1, version: "RMA2v2", rules: RMA_G1 },
+  { tool: "rma", grade_level: 2, version: "RMA2v2", rules: RMA_G2 },
   { tool: "rma", grade_level: 3, version: "RMA2v2", rules: RMA_G3 },
 ] as const;

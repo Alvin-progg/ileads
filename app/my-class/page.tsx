@@ -37,13 +37,25 @@ export default async function MyClassPage() {
           href="/crla"
           className="text-sm font-medium text-emerald-700 hover:underline"
         >
-          CRLA Grade 1 entry →
+          CRLA entry →
         </Link>
         <Link
           href="/crla/class-record"
           className="text-sm font-medium text-emerald-700 hover:underline"
         >
           CRLA class record →
+        </Link>
+        <Link
+          href="/rma"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          RMA entry →
+        </Link>
+        <Link
+          href="/rma/class-record"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          RMA class record →
         </Link>
       </nav>
     </main>

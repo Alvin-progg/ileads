@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { computeCrla } from "@/lib/scoring/crla.ts";
 import type { CrlaRules } from "@/lib/scoring/types.ts";
+import { useRowAutosave, type SaveStatus } from "@/lib/use-row-autosave.ts";
+import { handleColumnKeyDown } from "@/lib/grid-keys.ts";
+import { Tab, TabGroup, useGuardedNav } from "../entry-nav.tsx";
 import { saveCrlaRow, type CrlaRowValues } from "./actions.ts";
-import { useRowAutosave, type SaveStatus } from "./use-row-autosave.ts";
 
 export type Learner = {
   id: string;
@@ -120,7 +121,6 @@ export function CrlaGrid({
 }) {
   const langRules = rules.languages[language];
   const limits = langRules.inputs;
-  const router = useRouter();
 
   // Grade 3 English sums a single Task 2 rather than branching between a low
   // and a high form, so its Task 2H column would never be usable.
@@ -170,6 +170,10 @@ export function CrlaGrid({
     const ids = Object.keys(drafts);
     if (ids.length === 0) return;
 
+    // Recovery has to happen after mount: reading localStorage during the
+    // initial render would make the client tree disagree with the server HTML.
+    // One extra render at load is the price of not losing a teacher's drafts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRows((prev) => {
       const next = { ...prev };
       for (const [id, v] of Object.entries(drafts)) {
@@ -298,25 +302,7 @@ export function CrlaGrid({
 
   /** Enter/Arrow move down a column; Tab is left to the browser. */
   function handleKeyDown(e: React.KeyboardEvent, rowIndex: number, col: ColumnKey) {
-    const isDown = e.key === "Enter" ? !e.shiftKey : e.key === "ArrowDown";
-    const isUp = e.key === "Enter" ? e.shiftKey : e.key === "ArrowUp";
-    if (!isDown && !isUp) return;
-
-    e.preventDefault();
-    const step = isDown ? 1 : -1;
-
-    // Skip rows where this column is disabled (the inactive Task 2 branch),
-    // so keyboard-only entry never lands on an unusable cell.
-    for (let r = rowIndex + step; r >= 0 && r < learners.length; r += step) {
-      const el = document.querySelector<HTMLElement>(
-        `[data-row="${r}"][data-col="${col}"]`
-      );
-      if (el && !(el as HTMLInputElement).disabled) {
-        el.focus();
-        if (el instanceof HTMLInputElement) el.select();
-        return;
-      }
-    }
+    handleColumnKeyDown(e, rowIndex, col, learners.length);
   }
 
   const numeric = (raw: string): number | null =>
@@ -327,10 +313,8 @@ export function CrlaGrid({
     [autosave.statuses]
   );
 
-  // Switching grade, language or round unmounts this grid. Rows still inside
-  // the debounce would go with it, so navigation waits for them to land.
-  const [leaving, setLeaving] = useState(false);
   const { flushAllAndWait, pendingCount } = autosave;
+  const { leaving, go } = useGuardedNav(flushAllAndWait);
 
   function hrefFor(next: {
     grade?: number;
@@ -343,19 +327,6 @@ export function CrlaGrid({
       round: String(next.round ?? roundId),
     });
     return `/crla?${params}`;
-  }
-
-  async function go(href: string) {
-    if (leaving) return;
-    setLeaving(true);
-    const saved = await flushAllAndWait();
-    // A row that will not save keeps the teacher here, with the retry banner
-    // and their typed values still on screen.
-    if (!saved) {
-      setLeaving(false);
-      return;
-    }
-    router.push(href);
   }
 
   return (
@@ -653,53 +624,5 @@ export function CrlaGrid({
         on this device and re-sent automatically if the connection drops.
       </p>
     </div>
-  );
-}
-
-function TabGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-neutral-500">{label}</span>
-      <div className="flex gap-1">{children}</div>
-    </div>
-  );
-}
-
-/**
- * A button rather than a link: every switch has to flush unsaved rows first,
- * so navigation cannot be left to the browser.
- */
-function Tab({
-  active,
-  disabled,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  disabled: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-current={active ? "page" : undefined}
-      className={
-        "rounded-md px-2.5 py-1 font-medium transition-colors disabled:opacity-50 " +
-        (active
-          ? "bg-emerald-600 text-white"
-          : "text-neutral-600 hover:bg-neutral-100")
-      }
-    >
-      {children}
-    </button>
   );
 }

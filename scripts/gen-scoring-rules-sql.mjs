@@ -25,11 +25,12 @@ process.stdout.write(`-- Scoring cut-offs (ticket #7).
 -- workbooks, not from the prose on their Scoring Reference sheets (the two
 -- disagree in places).
 --
--- Deliberately absent: RMA grades 1, 2 and 4-6. Grades 1-2 have known task
--- structures (35 pts across Tasks A-H, 25 pts across Tasks A-K) but no band
--- formula in any supplied file; grades 4-6 use a different domain-based
--- instrument. The loader raises a clear error for them rather than scoring
--- against a guessed ladder.
+-- RMA grades 1 and 2 carry only what their workbook states: the task letters
+-- and the instrument total. Their per-task maxima are null and their level
+-- bands empty, so raw scores can be encoded while the proficiency level reads
+-- as not yet configured. RMA grades 4-6 are absent entirely - a different
+-- domain-based instrument - and the loader raises a clear error for them
+-- rather than scoring against a guessed ladder.
 
 insert into scoring_rules (tool, grade_level, version, rules) values
 ${rows}
