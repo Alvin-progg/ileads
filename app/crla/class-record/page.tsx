@@ -1,16 +1,39 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
+import { getGradeTeacherNames } from "@/lib/teachers";
 import { gradeLabel } from "@/lib/grades";
 import { SCHOOL, schoolDetailsIncomplete } from "@/lib/school";
 import { getCrlaRules } from "@/lib/scoring/load.ts";
+import { orderLanguages } from "@/lib/languages";
 import { toClassRecordRow } from "@/lib/scoring/class-record.ts";
-import { summarise, type Sex, type TallyRow } from "@/lib/scoring/class-summary.ts";
+import {
+  summarise,
+  type ClassSummary,
+  type PercentRow,
+  type Sex,
+  type TallyRow,
+} from "@/lib/scoring/class-summary.ts";
+import { PrintButton } from "./print-button.tsx";
 
 export const metadata = { title: "CRLA Class Record — I-LEADS" };
 
 /** Grades with a CRLA instrument. */
 const CRLA_GRADES = [1, 2, 3];
+
+/** The three rows every tally is split into, in the workbook's order. */
+const SEX_ROWS = [
+  { key: "male", label: "Male" },
+  { key: "female", label: "Female" },
+  { key: "total", label: "Total" },
+] as const;
+
+type SexKey = (typeof SEX_ROWS)[number]["key"];
+
+/** "Grade 1" / "Kindergarten" — the long form the printed forms use. */
+function gradeName(grade: number): string {
+  return grade === 0 ? "Kindergarten" : `Grade ${grade}`;
+}
 
 export default async function ClassRecordPage({
   searchParams,
@@ -40,7 +63,7 @@ export default async function ClassRecordPage({
     : available[0];
 
   const rules = await getCrlaRules(supabase, grade);
-  const languages = Object.keys(rules.languages);
+  const languages = orderLanguages(Object.keys(rules.languages));
   const language = languages.includes(params.language ?? "")
     ? params.language!
     : languages[0];
@@ -102,14 +125,27 @@ export default async function ClassRecordPage({
       sex: r.learner.sex as Sex,
       readingLevel: r.record.readingLevel,
       readingProfile: r.record.readingProfile,
+      fluency: r.record.fluency,
+      comprehensionPercent: r.record.comprehensionPercent,
+      wpm: r.record.wpm,
     })),
     rules,
     language
   );
 
-  const pct = (v: number | null) => (v === null ? "" : `${(v * 100).toFixed(0)}%`);
-  const num = (v: number | null, digits = 0) =>
-    v === null ? "" : v.toFixed(digits);
+  // Teachers of record. RLS lets a teacher read only their own assignment, so
+  // fall back to the signed-in name rather than printing a blank line.
+  const teacherNames = await getGradeTeacherNames(supabase, grade);
+  const teachers =
+    teacherNames.length > 0 ? teacherNames.join(", ") : viewer.fullName || "—";
+
+  // crla_results has no date-of-assessment column, so the header carries the
+  // date the form was printed — and says so, to avoid being read as one.
+  const printedOn = new Date().toLocaleDateString("en-PH", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <Shell>
@@ -119,7 +155,7 @@ export default async function ClassRecordPage({
           {available.map((g) => (
             <PickerLink
               key={g}
-              href={`/crla/class-record?grade=${g}&round=${round.id}`}
+              href={`/crla/class-record?grade=${g}&language=${language}&round=${round.id}`}
               active={g === grade}
             >
               {gradeLabel(g)}
@@ -155,6 +191,7 @@ export default async function ClassRecordPage({
           <Link href="/crla" className="text-emerald-700 hover:underline">
             ← Entry grid
           </Link>
+          <PrintButton />
         </div>
       </div>
 
@@ -167,12 +204,12 @@ export default async function ClassRecordPage({
       )}
 
       {/* Printed header block. */}
-      <header className="mb-4 border-b border-neutral-300 pb-3">
+      <header className="mb-4 break-inside-avoid border-b border-neutral-300 pb-3">
         <p className="text-center text-[11px] uppercase tracking-widest text-neutral-500">
           Republic of the Philippines · Department of Education
         </p>
         <h1 className="mt-1 text-center text-base font-bold">
-          CRLA Class Record
+          {gradeName(grade)} Reading Assessment — CRLA Class Record
         </h1>
         <dl className="mt-3 grid grid-cols-2 gap-x-8 gap-y-1 text-[12px] sm:grid-cols-3">
           <Field label="School" value={SCHOOL.name} />
@@ -181,32 +218,75 @@ export default async function ClassRecordPage({
           <Field label="Division" value={SCHOOL.division} />
           <Field label="Region" value={SCHOOL.region} />
           <Field label="School Year" value={SCHOOL.schoolYear} />
-          <Field label="Grade" value={gradeLabel(grade)} />
+          <Field label="Grade" value={gradeName(grade)} />
           <Field label="Language" value={language} />
           <Field label="Round" value={round.name} />
+          <Field label="Teacher" value={teachers} />
+          <Field
+            label="Total Enrolment"
+            value={`${summary.enrolledBySex.total} (M ${summary.enrolledBySex.male} · F ${summary.enrolledBySex.female})`}
+          />
+          <Field label="Total Assessed" value={String(summary.assessed)} />
+          <Field label="Date Printed" value={printedOn} />
         </dl>
       </header>
 
       <table className="w-full border-collapse text-[12px]">
         <thead>
           <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
-            <th className="px-2 py-1.5 text-right font-medium">S/N</th>
-            <th className="px-2 py-1.5 text-left font-medium">LRN</th>
-            <th className="px-2 py-1.5 text-left font-medium">Name of Learner</th>
-            <th className="px-2 py-1.5 text-center font-medium">Sex</th>
-            <th className="px-2 py-1.5 text-left font-medium">Part 1 Reading Level</th>
-            <th className="px-2 py-1.5 text-right font-medium">% Score</th>
-            <th className="px-2 py-1.5 text-right font-medium">Fluency</th>
-            <th className="px-2 py-1.5 text-right font-medium">Compr.</th>
-            <th className="px-2 py-1.5 text-right font-medium">WPM</th>
-            <th className="px-2 py-1.5 text-left font-medium">Reading Profile</th>
-            <th className="px-2 py-1.5 text-left font-medium">Remarks</th>
+            <th rowSpan={2} className="px-2 py-1.5 text-right font-medium">
+              S/N
+            </th>
+            <th rowSpan={2} className="px-2 py-1.5 text-left font-medium">
+              LRN
+            </th>
+            <th rowSpan={2} className="px-2 py-1.5 text-left font-medium">
+              Name of Learner
+            </th>
+            <th rowSpan={2} className="px-2 py-1.5 text-center font-medium">
+              Sex
+            </th>
+            <th
+              colSpan={2}
+              className="border-x border-neutral-300 px-2 py-1.5 text-center font-medium"
+            >
+              Assessment Part 1
+            </th>
+            <th
+              colSpan={3}
+              className="border-r border-neutral-300 px-2 py-1.5 text-center font-medium"
+            >
+              Assessment Part 2
+            </th>
+            <th rowSpan={2} className="px-2 py-1.5 text-left font-medium">
+              Reading Profile
+            </th>
+            <th rowSpan={2} className="px-2 py-1.5 text-left font-medium">
+              Remarks
+            </th>
+          </tr>
+          <tr className="border-b border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
+            <th className="border-l border-neutral-300 px-2 py-1.5 text-left font-medium">
+              Assessment Part 1 Level
+            </th>
+            <th className="border-r border-neutral-300 px-2 py-1.5 text-right font-medium">
+              % of Total Score
+            </th>
+            <th className="px-2 py-1.5 text-right font-medium">Reading Fluency</th>
+            <th className="px-2 py-1.5 text-right font-medium">
+              Reading Comprehension
+            </th>
+            <th className="border-r border-neutral-300 px-2 py-1.5 text-right font-medium">
+              Average Word Per Minute
+            </th>
           </tr>
         </thead>
         <tbody>
           {rows.map(({ n, learner, record, remarks }) => (
             <tr key={learner.id} className="border-b border-neutral-200">
-              <td className="px-2 py-1 text-right tabular-nums text-neutral-500">{n}</td>
+              <td className="px-2 py-1 text-right tabular-nums text-neutral-500">
+                {n}
+              </td>
               <td className="px-2 py-1 font-mono text-[11px] text-neutral-600">
                 {learner.lrn}
               </td>
@@ -215,10 +295,10 @@ export default async function ClassRecordPage({
                 {learner.middle_name ? ` ${learner.middle_name[0]}.` : ""}
               </td>
               <td className="px-2 py-1 text-center">{learner.sex}</td>
-              <td className="whitespace-nowrap px-2 py-1">
+              <td className="whitespace-nowrap border-l border-neutral-200 px-2 py-1">
                 {record.readingLevel ?? ""}
               </td>
-              <td className="px-2 py-1 text-right tabular-nums">
+              <td className="border-r border-neutral-200 px-2 py-1 text-right tabular-nums">
                 {pct(record.percentScore)}
               </td>
               <td className="px-2 py-1 text-right tabular-nums">
@@ -227,7 +307,7 @@ export default async function ClassRecordPage({
               <td className="px-2 py-1 text-right tabular-nums">
                 {pct(record.comprehensionPercent)}
               </td>
-              <td className="px-2 py-1 text-right tabular-nums">
+              <td className="border-r border-neutral-200 px-2 py-1 text-right tabular-nums">
                 {num(record.wpm, 1)}
               </td>
               <td className="whitespace-nowrap px-2 py-1">
@@ -253,12 +333,41 @@ export default async function ClassRecordPage({
           {summary.unscored.total} not yet assessed
         </p>
         <div className="grid gap-6 sm:grid-cols-2">
-          <TallyTable title="By Reading Level" rows={summary.levels} extra={summary.unscored} />
-          <TallyTable title="By Reading Profile" rows={summary.profiles} />
+          <TallyTable
+            title="By Reading Level"
+            heading="Level"
+            rows={summary.levels}
+            extra={summary.unscored}
+          />
+          <TallyTable
+            title="By Reading Profile"
+            heading="Profile"
+            rows={summary.profiles}
+            extra={summary.unscored}
+          />
         </div>
       </section>
 
-      <footer className="mt-8 grid grid-cols-2 gap-12 text-[11px]">
+      <section className="mt-6 break-inside-avoid">
+        <h2 className="mb-2 text-[13px] font-bold">
+          Class Summary — district form layout
+        </h2>
+        <div className="overflow-x-auto print:overflow-visible">
+          <SummaryMatrix summary={summary} />
+        </div>
+      </section>
+
+      <section className="mt-6 break-inside-avoid">
+        <h2 className="mb-2 text-[13px] font-bold">Percent (%) of Learners</h2>
+        <p className="mb-2 text-[11px] text-neutral-500">
+          Each band as a share of the learners assessed in that row.
+        </p>
+        <div className="overflow-x-auto print:overflow-visible">
+          <PercentMatrix summary={summary} />
+        </div>
+      </section>
+
+      <footer className="mt-8 grid grid-cols-2 gap-12 break-inside-avoid text-[11px]">
         <SignatureLine label="Teacher" />
         <SignatureLine label="School Head" />
       </footer>
@@ -266,15 +375,230 @@ export default async function ClassRecordPage({
   );
 }
 
+const pct = (v: number | null) => (v === null ? "" : `${(v * 100).toFixed(0)}%`);
+const num = (v: number | null, digits = 0) => (v === null ? "" : v.toFixed(digits));
+
+/**
+ * The wide summary the district form uses: one row per sex, with every band
+ * and average across the columns.
+ */
+function SummaryMatrix({ summary }: { summary: ClassSummary }) {
+  return (
+    <table className="summary-matrix w-full min-w-[720px] border-collapse text-[11px] print:min-w-0">
+      <thead>
+        <tr className="border-y border-neutral-300 bg-neutral-50 text-[9px] uppercase tracking-wide text-neutral-600">
+          <th rowSpan={2} className="px-2 py-1 text-left font-medium">
+            Sex
+          </th>
+          <th rowSpan={2} className="px-2 py-1 text-right font-medium">
+            Enrolled
+          </th>
+          <th rowSpan={2} className="px-2 py-1 text-right font-medium">
+            Assessed
+          </th>
+          <th
+            colSpan={summary.levels.length}
+            className="border-x border-neutral-300 px-2 py-1 text-center font-medium"
+          >
+            Assessment Part 1 Level
+          </th>
+          <th
+            colSpan={3}
+            className="border-r border-neutral-300 px-2 py-1 text-center font-medium"
+          >
+            Assessment Part 2 Average Score
+          </th>
+          <th
+            colSpan={summary.profiles.length}
+            className="px-2 py-1 text-center font-medium"
+          >
+            Reading Profile
+          </th>
+        </tr>
+        <tr className="border-b border-neutral-300 bg-neutral-50 text-[9px] uppercase tracking-wide text-neutral-600">
+          {summary.levels.map((l, i) => (
+            <th
+              key={l.label}
+              className={
+                "px-2 py-1 text-right font-medium" +
+                (i === 0 ? " border-l border-neutral-300" : "")
+              }
+            >
+              {l.label}
+            </th>
+          ))}
+          <th className="border-l border-neutral-300 px-2 py-1 text-right font-medium">
+            Reading Fluency
+          </th>
+          <th className="px-2 py-1 text-right font-medium">Reading Comprehension</th>
+          <th className="border-r border-neutral-300 px-2 py-1 text-right font-medium">
+            Average Word Per Minute
+          </th>
+          {summary.profiles.map((p) => (
+            <th key={p.label} className="px-2 py-1 text-right font-medium">
+              {p.label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {SEX_ROWS.map(({ key, label }) => (
+          <tr
+            key={key}
+            className={
+              "border-b border-neutral-200" + (key === "total" ? " font-medium" : "")
+            }
+          >
+            <td className="px-2 py-1">{label}</td>
+            <td className="px-2 py-1 text-right tabular-nums">
+              {summary.enrolledBySex[key]}
+            </td>
+            <td className="px-2 py-1 text-right tabular-nums">
+              {summary.assessedBySex[key]}
+            </td>
+            {summary.levels.map((l, i) => (
+              <td
+                key={l.label}
+                className={
+                  "px-2 py-1 text-right tabular-nums" +
+                  (i === 0 ? " border-l border-neutral-200" : "")
+                }
+              >
+                {l[key]}
+              </td>
+            ))}
+            <td className="border-l border-neutral-200 px-2 py-1 text-right tabular-nums">
+              {pct(summary.averages[key].fluency)}
+            </td>
+            <td className="px-2 py-1 text-right tabular-nums">
+              {pct(summary.averages[key].comprehensionPercent)}
+            </td>
+            <td className="border-r border-neutral-200 px-2 py-1 text-right tabular-nums">
+              {num(summary.averages[key].wpm, 1)}
+            </td>
+            {summary.profiles.map((p) => (
+              <td key={p.label} className="px-2 py-1 text-right tabular-nums">
+                {p[key]}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+/** The same shape again, each count divided by that row's assessed learners. */
+function PercentMatrix({ summary }: { summary: ClassSummary }) {
+  const cell = (row: PercentRow, key: SexKey) => pct(row[key]);
+
+  return (
+    <table className="summary-matrix w-full min-w-[720px] border-collapse text-[11px] print:min-w-0">
+      <thead>
+        <tr className="border-y border-neutral-300 bg-neutral-50 text-[9px] uppercase tracking-wide text-neutral-600">
+          <th rowSpan={2} className="px-2 py-1 text-left font-medium">
+            Sex
+          </th>
+          <th rowSpan={2} className="px-2 py-1 text-right font-medium">
+            Percent of Learners Assessed
+          </th>
+          <th
+            colSpan={summary.percents.levels.length}
+            className="border-x border-neutral-300 px-2 py-1 text-center font-medium"
+          >
+            Assessment Part 1 Level
+          </th>
+          <th
+            colSpan={summary.percents.profiles.length}
+            className="px-2 py-1 text-center font-medium"
+          >
+            Reading Profile
+          </th>
+        </tr>
+        <tr className="border-b border-neutral-300 bg-neutral-50 text-[9px] uppercase tracking-wide text-neutral-600">
+          {summary.percents.levels.map((l, i) => (
+            <th
+              key={l.label}
+              className={
+                "px-2 py-1 text-right font-medium" +
+                (i === 0 ? " border-l border-neutral-300" : "")
+              }
+            >
+              {l.label}
+            </th>
+          ))}
+          {summary.percents.profiles.map((p, i) => (
+            <th
+              key={p.label}
+              className={
+                "px-2 py-1 text-right font-medium" +
+                (i === 0 ? " border-l border-neutral-300" : "")
+              }
+            >
+              {p.label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {SEX_ROWS.map(({ key, label }) => {
+          const enrolled = summary.enrolledBySex[key];
+          const assessed = summary.assessedBySex[key];
+          return (
+            <tr
+              key={key}
+              className={
+                "border-b border-neutral-200" +
+                (key === "total" ? " font-medium" : "")
+              }
+            >
+              <td className="px-2 py-1">{label}</td>
+              <td className="px-2 py-1 text-right tabular-nums">
+                {enrolled === 0 ? "" : pct(assessed / enrolled)}
+              </td>
+              {summary.percents.levels.map((l, i) => (
+                <td
+                  key={l.label}
+                  className={
+                    "px-2 py-1 text-right tabular-nums" +
+                    (i === 0 ? " border-l border-neutral-200" : "")
+                  }
+                >
+                  {cell(l, key)}
+                </td>
+              ))}
+              {summary.percents.profiles.map((p, i) => (
+                <td
+                  key={p.label}
+                  className={
+                    "px-2 py-1 text-right tabular-nums" +
+                    (i === 0 ? " border-l border-neutral-200" : "")
+                  }
+                >
+                  {cell(p, key)}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
 function TallyTable({
   title,
+  heading,
   rows,
   extra,
 }: {
   title: string;
+  heading: string;
   rows: TallyRow[];
   extra?: TallyRow;
 }) {
+  // The unscored row is appended to both tallies so their Total rows agree
+  // with each other and with the class size.
   const all = extra ? [...rows, extra] : rows;
   const totals = all.reduce(
     (acc, r) => ({
@@ -292,7 +616,7 @@ function TallyTable({
       </caption>
       <thead>
         <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase text-neutral-600">
-          <th className="px-2 py-1 text-left font-medium">Level</th>
+          <th className="px-2 py-1 text-left font-medium">{heading}</th>
           <th className="w-12 px-2 py-1 text-right font-medium">M</th>
           <th className="w-12 px-2 py-1 text-right font-medium">F</th>
           <th className="w-14 px-2 py-1 text-right font-medium">Total</th>
@@ -379,5 +703,9 @@ function PickerLink({
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <main className="mx-auto max-w-[1100px] p-6 print:max-w-none print:p-0">{children}</main>;
+  return (
+    <main className="mx-auto max-w-[1100px] p-6 print:max-w-none print:p-0">
+      {children}
+    </main>
+  );
 }

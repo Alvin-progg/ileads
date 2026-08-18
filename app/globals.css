@@ -86,6 +86,19 @@ button:active:not(:disabled),
     display: table-header-group;
   }
 
+  /* The district-shaped summary matrices carry a column per band; a smaller
+     face keeps them inside the landscape width instead of clipping. */
+  .summary-matrix {
+    font-size: 8pt;
+  }
+
+  /* Blocks that only make sense whole. */
+  header,
+  footer,
+  dl {
+    break-inside: avoid;
+  }
+
   tr,
   section {
     break-inside: avoid;

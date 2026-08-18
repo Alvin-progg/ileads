@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { computeCrla } from "@/lib/scoring/crla.ts";
 import type { CrlaRules } from "@/lib/scoring/types.ts";
@@ -43,21 +44,19 @@ const EMPTY: RowValues = {
   remarks: null,
 };
 
-/** Input columns, in tab order. Used for Enter/Arrow navigation. */
-const COLUMNS = [
-  "task1",
-  "task2l",
-  "task2h",
-  "story_no",
-  "miscues",
-  "minutes",
-  "seconds",
-  "comprehension_correct",
-  "experience_rating",
-  "observation_level",
-  "remarks",
-] as const;
-type ColumnKey = (typeof COLUMNS)[number];
+/** Input columns. Tab order follows the DOM; Enter/Arrow move within a column. */
+type ColumnKey =
+  | "task1"
+  | "task2l"
+  | "task2h"
+  | "story_no"
+  | "miscues"
+  | "minutes"
+  | "seconds"
+  | "comprehension_correct"
+  | "experience_rating"
+  | "observation_level"
+  | "remarks";
 
 function secondsToParts(total: number | null) {
   if (total === null) return { minutes: null, seconds: null };
@@ -92,6 +91,16 @@ const STATUS_STYLE: Record<SaveStatus, string> = {
   failed: "text-red-600 underline",
 };
 
+/** What the tab bar above the grid can switch between. */
+export type GridNav = {
+  /** CRLA grades this viewer may encode. */
+  grades: number[];
+  /** Languages the current grade is assessed in. */
+  languages: string[];
+  rounds: { id: number; name: string }[];
+  grade: number;
+};
+
 export function CrlaGrid({
   learners,
   rules,
@@ -99,6 +108,7 @@ export function CrlaGrid({
   roundId,
   roundName,
   initialValues,
+  nav,
 }: {
   learners: Learner[];
   rules: CrlaRules;
@@ -106,9 +116,15 @@ export function CrlaGrid({
   roundId: number;
   roundName: string;
   initialValues: Record<string, CrlaRowValues>;
+  nav: GridNav;
 }) {
   const langRules = rules.languages[language];
   const limits = langRules.inputs;
+  const router = useRouter();
+
+  // Grade 3 English sums a single Task 2 rather than branching between a low
+  // and a high form, so its Task 2H column would never be usable.
+  const singleTask2 = langRules.part1.total.mode === "sum";
 
   const [rows, setRows] = useState<Record<string, RowValues>>(() =>
     Object.fromEntries(
@@ -311,8 +327,104 @@ export function CrlaGrid({
     [autosave.statuses]
   );
 
+  // Switching grade, language or round unmounts this grid. Rows still inside
+  // the debounce would go with it, so navigation waits for them to land.
+  const [leaving, setLeaving] = useState(false);
+  const { flushAllAndWait, pendingCount } = autosave;
+
+  function hrefFor(next: {
+    grade?: number;
+    language?: string;
+    round?: number;
+  }): string {
+    const params = new URLSearchParams({
+      grade: String(next.grade ?? nav.grade),
+      language: next.language ?? language,
+      round: String(next.round ?? roundId),
+    });
+    return `/crla?${params}`;
+  }
+
+  async function go(href: string) {
+    if (leaving) return;
+    setLeaving(true);
+    const saved = await flushAllAndWait();
+    // A row that will not save keeps the teacher here, with the retry banner
+    // and their typed values still on screen.
+    if (!saved) {
+      setLeaving(false);
+      return;
+    }
+    router.push(href);
+  }
+
   return (
     <div>
+      <div className="mb-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[13px]">
+        {nav.grades.length > 1 && (
+          <TabGroup label="Grade">
+            {nav.grades.map((g) => (
+              <Tab
+                key={g}
+                active={g === nav.grade}
+                disabled={leaving}
+                onClick={() => go(hrefFor({ grade: g }))}
+              >
+                {g === 0 ? "K" : g}
+              </Tab>
+            ))}
+          </TabGroup>
+        )}
+
+        {nav.languages.length > 1 && (
+          <TabGroup label="Language">
+            {nav.languages.map((l) => (
+              <Tab
+                key={l}
+                active={l === language}
+                disabled={leaving}
+                onClick={() => go(hrefFor({ language: l }))}
+              >
+                {l}
+              </Tab>
+            ))}
+          </TabGroup>
+        )}
+
+        <TabGroup label="Round">
+          {nav.rounds.map((r) => (
+            <Tab
+              key={r.id}
+              active={r.id === roundId}
+              disabled={leaving}
+              onClick={() => go(hrefFor({ round: r.id }))}
+            >
+              {r.name}
+            </Tab>
+          ))}
+        </TabGroup>
+
+        <div className="ml-auto flex items-center gap-3">
+          {leaving && (
+            <span className="text-[12px] text-amber-600">
+              saving {pendingCount} row{pendingCount === 1 ? "" : "s"}...
+            </span>
+          )}
+          <button
+            type="button"
+            disabled={leaving}
+            onClick={() =>
+              go(
+                `/crla/class-record?grade=${nav.grade}&language=${language}&round=${roundId}`
+              )
+            }
+            className="font-medium text-emerald-700 hover:underline disabled:opacity-50"
+          >
+            Class Record →
+          </button>
+        </div>
+      </div>
+
       {failedRows > 0 && (
         <div className="mb-3 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
           <span>
@@ -338,8 +450,14 @@ export function CrlaGrid({
                 Learner
               </th>
               <th className="px-2 py-2 font-medium">Task 1</th>
-              <th className="px-2 py-2 font-medium">Task 2L</th>
-              <th className="px-2 py-2 font-medium">Task 2H</th>
+              {singleTask2 ? (
+                <th className="px-2 py-2 font-medium">Task 2</th>
+              ) : (
+                <>
+                  <th className="px-2 py-2 font-medium">Task 2L</th>
+                  <th className="px-2 py-2 font-medium">Task 2H</th>
+                </>
+              )}
               <th className="px-2 py-2 font-medium">Story</th>
               <th className="px-2 py-2 font-medium">Miscues</th>
               <th className="px-2 py-2 font-medium">Min</th>
@@ -415,14 +533,16 @@ export function CrlaGrid({
                       task2lDisabled
                     )}
                   </td>
-                  <td className="w-16 px-1">
-                    {num(
-                      "task2h",
-                      v.task2h,
-                      (n) => update(learner.id, { task2h: n }),
-                      task2hDisabled
-                    )}
-                  </td>
+                  {!singleTask2 && (
+                    <td className="w-16 px-1">
+                      {num(
+                        "task2h",
+                        v.task2h,
+                        (n) => update(learner.id, { task2h: n }),
+                        task2hDisabled
+                      )}
+                    </td>
+                  )}
                   <td className="w-14 px-1">
                     {num("story_no", v.story_no, (n) => update(learner.id, { story_no: n }))}
                   </td>
@@ -533,5 +653,53 @@ export function CrlaGrid({
         on this device and re-sent automatically if the connection drops.
       </p>
     </div>
+  );
+}
+
+function TabGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-neutral-500">{label}</span>
+      <div className="flex gap-1">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * A button rather than a link: every switch has to flush unsaved rows first,
+ * so navigation cannot be left to the browser.
+ */
+function Tab({
+  active,
+  disabled,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-current={active ? "page" : undefined}
+      className={
+        "rounded-md px-2.5 py-1 font-medium transition-colors disabled:opacity-50 " +
+        (active
+          ? "bg-emerald-600 text-white"
+          : "text-neutral-600 hover:bg-neutral-100")
+      }
+    >
+      {children}
+    </button>
   );
 }
