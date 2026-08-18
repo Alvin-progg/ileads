@@ -40,3 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# source assessment workbooks — real learner data, not for the repo
+/FIles/
+/files/

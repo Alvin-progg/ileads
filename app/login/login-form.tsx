@@ -49,7 +49,7 @@ export function LoginForm() {
           required
           autoFocus
           autoComplete="email"
-          placeholder="m.reyes@deped.gov.ph"
+          placeholder="johndoe@deped.gov.ph"
           className={inputClasses}
         />
       </label>
