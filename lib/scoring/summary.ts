@@ -93,3 +93,12 @@ export function countsBySex<T extends { sex: Sex }>(entries: T[]): BySex<number>
     total: groups.total.length,
   };
 }
+
+/** Population standard deviation: sqrt(sum((x-mean)^2) / N). */
+export function standardDeviation(values: number[]): number {
+  if (values.length === 0) return 0;
+  const m = values.reduce((sum, v) => sum + v, 0) / values.length;
+  const variance =
+    values.reduce((sum, v) => sum + (v - m) ** 2, 0) / values.length;
+  return Math.sqrt(variance);
+}

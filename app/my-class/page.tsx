@@ -57,6 +57,18 @@ export default async function MyClassPage() {
         >
           RMA class record →
         </Link>
+        <Link
+          href="/exam"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          Exam entry →
+        </Link>
+        <Link
+          href="/exam/class-record"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          Exam class record →
+        </Link>
       </nav>
     </main>
   );
