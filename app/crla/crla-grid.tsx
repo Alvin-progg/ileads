@@ -26,6 +26,7 @@ type RowValues = {
   comprehension_correct: number | null;
   experience_rating: number | null;
   observation_level: string | null;
+  remarks: string | null;
 };
 
 const EMPTY: RowValues = {
@@ -39,6 +40,7 @@ const EMPTY: RowValues = {
   comprehension_correct: null,
   experience_rating: null,
   observation_level: null,
+  remarks: null,
 };
 
 /** Input columns, in tab order. Used for Enter/Arrow navigation. */
@@ -53,6 +55,7 @@ const COLUMNS = [
   "comprehension_correct",
   "experience_rating",
   "observation_level",
+  "remarks",
 ] as const;
 type ColumnKey = (typeof COLUMNS)[number];
 
@@ -126,6 +129,7 @@ export function CrlaGrid({
             comprehension_correct: saved.comprehension_correct,
             experience_rating: saved.experience_rating,
             observation_level: saved.observation_level,
+            remarks: saved.remarks,
           },
         ];
       })
@@ -166,6 +170,7 @@ export function CrlaGrid({
           comprehension_correct: v.comprehension_correct,
           experience_rating: v.experience_rating,
           observation_level: v.observation_level,
+          remarks: v.remarks,
         };
       }
       return next;
@@ -244,6 +249,7 @@ export function CrlaGrid({
       comprehension_correct: v.comprehension_correct,
       experience_rating: v.experience_rating,
       observation_level: v.observation_level,
+      remarks: v.remarks,
     };
   }
 
@@ -341,6 +347,7 @@ export function CrlaGrid({
               <th className="px-2 py-2 font-medium">Compr.</th>
               <th className="px-2 py-2 font-medium">Exp.</th>
               <th className="px-2 py-2 font-medium">Observation</th>
+              <th className="px-2 py-2 font-medium">Remarks</th>
               <th className="bg-emerald-50/60 px-2 py-2 font-medium">Words</th>
               <th className="bg-emerald-50/60 px-2 py-2 font-medium">Total</th>
               <th className="bg-emerald-50/60 px-2 py-2 font-medium">Reading Level</th>
@@ -459,6 +466,20 @@ export function CrlaGrid({
                         </option>
                       ))}
                     </select>
+                  </td>
+                  <td className="w-40 px-1">
+                    <input
+                      type="text"
+                      data-row={rowIndex}
+                      data-col="remarks"
+                      value={v.remarks ?? ""}
+                      onChange={(e) =>
+                        update(learner.id, { remarks: e.target.value || null })
+                      }
+                      onBlur={() => flushNow(learner.id)}
+                      onKeyDown={(e) => handleKeyDown(e, rowIndex, "remarks")}
+                      className={cellInput}
+                    />
                   </td>
 
                   <td className="bg-emerald-50/40 px-2 text-center tabular-nums text-neutral-600">

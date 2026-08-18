@@ -54,6 +54,44 @@ button:active:not(:disabled),
   transform: scale(0.97);
 }
 
+/* Printed forms. Eleven columns do not fit A4 portrait at a legible size, so
+   the record prints landscape. */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* Keep the band tints and rules — the form reads as a table without them. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  table {
+    font-size: 9pt;
+    width: 100%;
+  }
+
+  /* Repeat headers on every page and never split a learner across pages. */
+  thead {
+    display: table-header-group;
+  }
+
+  tr,
+  section {
+    break-inside: avoid;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

@@ -13,6 +13,7 @@ export type CrlaRowValues = {
   comprehension_correct: number | null;
   experience_rating: number | null;
   observation_level: string | null;
+  remarks: string | null;
 };
 
 /**

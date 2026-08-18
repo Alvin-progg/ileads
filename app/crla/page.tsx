@@ -67,7 +67,7 @@ export default async function CrlaPage({
   const { data: existing } = await supabase
     .from("crla_results")
     .select(
-      "learner_id, task1, task2l, task2h, story_no, miscues, words_read, reading_secs, comprehension_correct, experience_rating, observation_level"
+      "learner_id, task1, task2l, task2h, story_no, miscues, words_read, reading_secs, comprehension_correct, experience_rating, observation_level, remarks"
     )
     .eq("round_id", activeRound.id)
     .eq("language", LANGUAGE);
