@@ -10,7 +10,12 @@
 // Source of every number below: the Excel formulas themselves, not the prose
 // on the Scoring Reference sheets (the two disagree in places).
 
-import type { CrlaLanguageRules, CrlaRules, RmaRules } from "./types.ts";
+import type {
+  CrlaInputLimits,
+  CrlaLanguageRules,
+  CrlaRules,
+  RmaRules,
+} from "./types.ts";
 
 // ---------------------------------------------------------------------------
 // CRLA — shared shapes
@@ -31,6 +36,23 @@ const MT_PART1: CrlaLanguageRules["part1"] = {
     { label: "Grade Ready", branch: "high", min: 27 },
   ],
 };
+
+/**
+ * Entry limits from the scoresheet's data validation. Task 1 and both Task 2
+ * forms are scored out of 10; the reading-time cap is the only value that
+ * varies by grade.
+ */
+function inputLimits(readingMinutesMax: number): CrlaInputLimits {
+  return {
+    task1: { min: 0, max: 10 },
+    task2Low: { min: 0, max: 10 },
+    task2High: { min: 0, max: 10 },
+    storyNo: { min: 1, max: 2 },
+    readingMinutes: { min: 0, max: readingMinutesMax },
+    experienceRating: { min: 1, max: 5 },
+    observationLevels: ["Level 1", "Level 2", "Level 3", "Level 4"],
+  };
+}
 
 /**
  * Builds the Part 2 profile ladder. Every grade shares the same fluency
@@ -143,6 +165,7 @@ export const CRLA_G1: CrlaRules = {
       passages: { "1": 51, "2": 51 },
       passageDefault: 50,
       comprehensionMax: 5,
+      inputs: inputLimits(1),
       profile: G1_PROFILE,
     },
   },
@@ -155,6 +178,7 @@ export const CRLA_G2: CrlaRules = {
       passages: { "1": 96, "2": 95 },
       passageDefault: 95,
       comprehensionMax: 6,
+      inputs: inputLimits(2),
       profile: G2_PROFILE,
     },
     // The FIL sheet mirrors MT wholesale — same scale, same cut-offs.
@@ -163,6 +187,7 @@ export const CRLA_G2: CrlaRules = {
       passages: { "1": 96, "2": 95 },
       passageDefault: 95,
       comprehensionMax: 6,
+      inputs: inputLimits(2),
       profile: G2_PROFILE,
     },
   },
@@ -175,6 +200,7 @@ export const CRLA_G3: CrlaRules = {
       passages: { "1": 121, "2": 121 },
       passageDefault: 120,
       comprehensionMax: 7,
+      inputs: inputLimits(3),
       profile: G3_PROFILE,
     },
     FIL: {
@@ -182,6 +208,7 @@ export const CRLA_G3: CrlaRules = {
       passages: { "1": 121, "2": 121 },
       passageDefault: 120,
       comprehensionMax: 7,
+      inputs: inputLimits(3),
       profile: G3_PROFILE,
     },
     // English is a different instrument: 20-point scale, its own level
@@ -202,6 +229,7 @@ export const CRLA_G3: CrlaRules = {
       },
       passages: { "1": 100, "2": 100 },
       comprehensionMax: 6,
+      inputs: inputLimits(2),
       profile: G2_PROFILE,
     },
   },

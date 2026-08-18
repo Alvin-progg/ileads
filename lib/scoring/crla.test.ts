@@ -314,6 +314,40 @@ test("words per minute is null without a recorded time", () => {
   assert.equal(result.fluency, 1, "fluency still computes — it needs no timing");
 });
 
+// ---------------------------------------------------------------------------
+// Entry limits
+// ---------------------------------------------------------------------------
+
+test("entry limits match the scoresheet's data validation", () => {
+  const g1 = CRLA_G1.languages.MT.inputs;
+  assert.equal(g1.task1.max, 10);
+  assert.equal(g1.task2Low.max, 10);
+  assert.equal(g1.task2High.max, 10);
+  assert.deepEqual(g1.storyNo, { min: 1, max: 2 });
+  assert.deepEqual(g1.experienceRating, { min: 1, max: 5 });
+  assert.deepEqual(g1.observationLevels, [
+    "Level 1",
+    "Level 2",
+    "Level 3",
+    "Level 4",
+  ]);
+});
+
+test("the reading time cap rises with the grade", () => {
+  // The sheets allow 1, 2 and 3 minutes respectively; English caps at 2.
+  assert.equal(CRLA_G1.languages.MT.inputs.readingMinutes.max, 1);
+  assert.equal(CRLA_G2.languages.MT.inputs.readingMinutes.max, 2);
+  assert.equal(CRLA_G3.languages.MT.inputs.readingMinutes.max, 3);
+  assert.equal(CRLA_G3.languages.ENG.inputs.readingMinutes.max, 2);
+});
+
+test("comprehension ceilings differ per grade, matching the question counts", () => {
+  assert.equal(CRLA_G1.languages.MT.comprehensionMax, 5);
+  assert.equal(CRLA_G2.languages.MT.comprehensionMax, 6);
+  assert.equal(CRLA_G3.languages.MT.comprehensionMax, 7);
+  assert.equal(CRLA_G3.languages.ENG.comprehensionMax, 6);
+});
+
 test("an unknown language is rejected rather than silently mis-scored", () => {
   assert.throws(
     () => computeCrla(input({ task1: 5, task2Low: 5 }), CRLA_G1, "ENG"),

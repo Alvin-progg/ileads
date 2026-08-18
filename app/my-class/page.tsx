@@ -26,12 +26,18 @@ export default async function MyClassPage() {
         </div>
         <LogoutButton />
       </header>
-      <nav className="mt-6">
+      <nav className="mt-6 flex flex-col gap-2">
         <Link
           href="/learners"
           className="text-sm font-medium text-emerald-700 hover:underline"
         >
           Learners →
+        </Link>
+        <Link
+          href="/crla"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          CRLA Grade 1 entry →
         </Link>
       </nav>
     </main>

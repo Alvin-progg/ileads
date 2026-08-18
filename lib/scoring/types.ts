@@ -58,6 +58,28 @@ export type CrlaProfileRules = {
   fallback: string | null;
 };
 
+/** Bounds for a raw-score field. Both ends inclusive. */
+export type InputRange = { min?: number; max: number };
+
+/**
+ * Entry limits for the raw-score fields, taken from the scoresheet's own data
+ * validation. These live with the cut-offs rather than in the UI so a revised
+ * instrument changes both together.
+ *
+ * Miscues are absent on purpose: their ceiling is the chosen story's passage
+ * length, already in `passages`, so it is derived per row instead of duplicated.
+ */
+export type CrlaInputLimits = {
+  task1: InputRange;
+  task2Low: InputRange;
+  task2High: InputRange;
+  storyNo: InputRange;
+  /** The sheet caps reading time per grade (G1 1 min, G2 2, G3 3). */
+  readingMinutes: InputRange;
+  experienceRating: InputRange;
+  observationLevels: string[];
+};
+
 export type CrlaLanguageRules = {
   part1: {
     max: number;
@@ -69,6 +91,7 @@ export type CrlaLanguageRules = {
   /** Fallback passage length when the story number has no entry. */
   passageDefault?: number;
   comprehensionMax: number;
+  inputs: CrlaInputLimits;
 };
 
 export type CrlaRules = {

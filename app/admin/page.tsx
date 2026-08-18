@@ -39,6 +39,12 @@ export default async function AdminPage() {
         >
           Learners →
         </Link>
+        <Link
+          href="/crla"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          CRLA Grade 1 entry →
+        </Link>
       </nav>
     </main>
   );
