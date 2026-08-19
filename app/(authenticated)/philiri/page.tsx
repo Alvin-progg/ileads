@@ -148,7 +148,7 @@ function Shell({
   return (
     <main className="p-6">
       <header className="mb-4">
-        <h1 className="text-xl font-bold">
+        <h1 className="text-2xl font-bold">
           Phil-IRI
           {grade === null ? "" : ` · Grade ${grade}`}
           {language === null ? "" : ` · ${LANGUAGE_NAMES[language] ?? language}`}

@@ -131,7 +131,7 @@ function Shell({
   return (
     <main className="p-6">
       <header className="mb-4">
-        <h1 className="text-xl font-bold">
+        <h1 className="text-2xl font-bold">
           CRLA{grade === null ? "" : ` · Grade ${grade}`}
         </h1>
         <p className="text-sm text-neutral-500">

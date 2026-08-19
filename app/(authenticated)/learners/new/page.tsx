@@ -8,7 +8,7 @@ export default async function NewLearnerPage() {
 
   return (
     <main className="mx-auto max-w-lg p-6">
-      <h1 className="mb-6 text-xl font-bold">Add learner</h1>
+      <h1 className="mb-6 text-2xl font-bold">Add learner</h1>
       <LearnerForm mode="create" allowedGrades={viewer.allowedGrades} />
     </main>
   );

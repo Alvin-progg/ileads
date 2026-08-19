@@ -18,7 +18,7 @@ export default async function LearnersPage() {
     <main className="mx-auto max-w-4xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Learners</h1>
+          <h1 className="text-2xl font-bold">Learners</h1>
           <p className="text-sm text-neutral-500">
             {viewer.isHead
               ? "All grade levels"

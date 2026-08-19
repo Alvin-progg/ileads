@@ -10,6 +10,7 @@ import {
 import { useRowAutosave, type SaveStatus } from "@/lib/use-row-autosave.ts";
 import { handleColumnKeyDown } from "@/lib/grid-keys.ts";
 import { Tab, TabGroup, useGuardedNav } from "../entry-nav.tsx";
+import { ExamMpsChart } from "../exam-mps-chart.tsx";
 import { saveExamHps, saveExamNotes, saveExamScore } from "./actions.ts";
 
 export type Learner = {
@@ -387,10 +388,10 @@ export function ExamGrid({
           </thead>
           <tbody>
             {learners.map((learner, rowIndex) => (
-              <tr key={learner.id} className="border-t border-neutral-100">
+              <tr key={learner.id} className="group border-t border-neutral-100 transition-colors hover:bg-neutral-50">
                 <th
                   scope="row"
-                  className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 text-left font-normal"
+                  className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 text-left font-normal transition-colors group-hover:bg-neutral-50"
                 >
                   {learner.last_name}, {learner.first_name}
                 </th>
@@ -445,6 +446,15 @@ export function ExamGrid({
 
       <section className="mt-6">
         <h2 className="mb-2 text-[13px] font-bold">Class statistics</h2>
+        <div className="mb-3">
+          <ExamMpsChart
+            grade={nav.grade}
+            subjects={subjects.map((s) => ({
+              subject: s.name,
+              mps: subjectStats.get(s.id)!.mpsBySex.total,
+            }))}
+          />
+        </div>
         <div className="overflow-x-auto rounded-xl border border-neutral-200">
           <table className="w-full border-collapse text-[12px]">
             <thead className="bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-500">

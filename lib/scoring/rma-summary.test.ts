@@ -161,10 +161,11 @@ test("nothing encoded yields nulls rather than divide-by-zero", () => {
 });
 
 // ---------------------------------------------------------------------------
-// Grades 1-2 — task letters known, cut-offs and per-task maxima not
+// Grades 1-2 — task letters known, per-task maxima not; proficiency level
+// shares Grade 3's percentage ladder (see instruments.ts)
 // ---------------------------------------------------------------------------
 
-test("an unconfigured grade counts its learners but reports no level", () => {
+test("a grade sharing Grade 3's ladder levels its own totals against its own max", () => {
   const g1 = (sex: Sex, ...raw: number[]) =>
     entry(
       sex,
@@ -172,13 +173,20 @@ test("an unconfigured grade counts its learners but reports no level", () => {
       RMA_G1
     );
 
-  const s = summariseRma([g1("M", 5, 4, 3), g1("F", 2, 1, 0), entry("F", null)], RMA_G1);
+  // G1's max is 35, not G3's 20 — the same percentage bands must be read
+  // against G1's own total.
+  const s = summariseRma(
+    [g1("M", 5, 4, 3), g1("F", 2, 1, 0), entry("F", null)],
+    RMA_G1
+  );
 
   assert.equal(s.assessed, 2, "raw scores still count as assessed");
-  assert.equal(s.levels.length, 0, "no bands to tally into");
-  assert.equal(s.unlevelled.total, 2);
-  assert.equal(s.unlevelled.label, "Level not yet configured");
   assert.equal(s.assessed + s.unscored.total, s.enrolled);
+  assert.equal(s.unlevelled.total, 0, "both totals landed in a band");
+
+  // 12/35 = 34.3% -> Emerging (Low Proficient); 3/35 = 8.6% -> Emerging (Not Proficient).
+  assert.equal(level(s, "Emerging (Low Proficient)").male, 1);
+  assert.equal(level(s, "Emerging (Not Proficient)").female, 1);
 
   // The totals are still real: 12 and 3.
   close(s.averageTotal.male, 12, "male average");

@@ -319,10 +319,10 @@ export function RmaGrid({
               const status = autosave.statuses[learner.id] ?? "clean";
 
               return (
-                <tr key={learner.id} className="border-t border-neutral-100">
+                <tr key={learner.id} className="group border-t border-neutral-100 transition-colors hover:bg-neutral-50">
                   <th
                     scope="row"
-                    className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 text-left font-normal"
+                    className="sticky left-0 z-10 whitespace-nowrap bg-white px-3 py-1 text-left font-normal transition-colors group-hover:bg-neutral-50"
                   >
                     {learner.last_name}, {learner.first_name}
                   </th>

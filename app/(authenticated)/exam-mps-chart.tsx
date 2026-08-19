@@ -1,7 +1,7 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, Cell, LabelList, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { EXAM_MASTERY_THRESHOLD, MUTED_TEXT, MUTED_TRACK, STATUS } from "../dashboard-colors.ts";
+import { EXAM_MASTERY_THRESHOLD, MUTED_TEXT, MUTED_TRACK, STATUS } from "./dashboard-colors.ts";
 
 export type ExamSubjectBar = { subject: string; mps: number | null };
 

@@ -246,10 +246,12 @@ export const CRLA_G3: CrlaRules = {
 //
 // Grades 1 and 2 are seeded with what the supplied Key Stage 1 workbook does
 // state — the task letters and the instrument total — and nothing else. Their
-// per-task maxima appear in no supplied file (`max: null`) and neither does a
-// band formula (`levels: []`), so a teacher can encode raw scores while the
-// proficiency level and per-task mastery report as not yet configured. A
-// guessed ladder would produce official-looking levels DepEd never defined.
+// per-task maxima appear in no supplied file (`max: null`), so per-task
+// mastery reports as not yet available for them. Their proficiency level
+// bands are NOT sourced from a G1/G2 DepEd workbook either — no such document
+// was supplied — but by team decision they reuse Grade 3's percentage ladder
+// (`RMA_LEVELS` below) rather than leaving levels unconfigured, since the
+// bands are already expressed as a fraction of each grade's own total.
 //
 // Grades 4–6 use a different domain-based instrument entirely and are absent;
 // the loader raises a clear error for them.
@@ -259,12 +261,24 @@ function lettersOnly(letters: string[]): RmaTask[] {
   return letters.map((key) => ({ key, label: `Task ${key}`, max: null }));
 }
 
+// Percentage-of-total proficiency ladder, transcribed from Grade 3's
+// scoresheet and shared across G1-G3 (see the comment above for G1/G2).
+// Label strings are byte-exact: the district workbook's COUNTIFS match them
+// literally, so any drift silently zeroes the summary counts.
+const RMA_LEVELS = [
+  { label: "Emerging (Not Proficient)", lt: 0.25 },
+  { label: "Emerging (Low Proficient)", gte: 0.25, lt: 0.5 },
+  { label: "Developing (Nearly Proficient)", gte: 0.5, lt: 0.75 },
+  { label: "Transitioning (Proficient)", gte: 0.75, lt: 0.85 },
+  { label: "At Grade Level (Highly Proficient)", gte: 0.85 },
+];
+
 export const RMA_G1: RmaRules = {
   tasks: lettersOnly(["A", "B", "C", "D", "E", "F", "G", "H"]),
   max: 35,
   blankWhenTotalZero: true,
   taskMasteryThreshold: 0.75,
-  levels: [],
+  levels: RMA_LEVELS,
 };
 
 export const RMA_G2: RmaRules = {
@@ -272,7 +286,7 @@ export const RMA_G2: RmaRules = {
   max: 25,
   blankWhenTotalZero: true,
   taskMasteryThreshold: 0.75,
-  levels: [],
+  levels: RMA_LEVELS,
 };
 
 export const RMA_G3: RmaRules = {
@@ -289,15 +303,7 @@ export const RMA_G3: RmaRules = {
   max: 20,
   blankWhenTotalZero: true,
   taskMasteryThreshold: 0.75,
-  // Label strings are byte-exact: the district workbook's COUNTIFS match them
-  // literally, so any drift silently zeroes the summary counts.
-  levels: [
-    { label: "Emerging (Not Proficient)", lt: 0.25 },
-    { label: "Emerging (Low Proficient)", gte: 0.25, lt: 0.5 },
-    { label: "Developing (Nearly Proficient)", gte: 0.5, lt: 0.75 },
-    { label: "Transitioning (Proficient)", gte: 0.75, lt: 0.85 },
-    { label: "At Grade Level (Highly Proficient)", gte: 0.85 },
-  ],
+  levels: RMA_LEVELS,
 };
 
 // ---------------------------------------------------------------------------

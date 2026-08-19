@@ -26,11 +26,13 @@ process.stdout.write(`-- Scoring cut-offs (ticket #7).
 -- disagree in places).
 --
 -- RMA grades 1 and 2 carry only what their workbook states: the task letters
--- and the instrument total. Their per-task maxima are null and their level
--- bands empty, so raw scores can be encoded while the proficiency level reads
--- as not yet configured. RMA grades 4-6 are absent entirely - a different
--- domain-based instrument - and the loader raises a clear error for them
--- rather than scoring against a guessed ladder.
+-- and the instrument total. Their per-task maxima are null, so per-task
+-- mastery is not available for them. Their proficiency level bands reuse
+-- Grade 3's percentage ladder by team decision (no G1/G2 DepEd workbook
+-- defines one) rather than leaving levels unconfigured. RMA grades 4-6 are
+-- absent entirely - a different domain-based instrument - and the loader
+-- raises a clear error for them rather than scoring against a guessed
+-- ladder.
 
 insert into scoring_rules (tool, grade_level, version, rules) values
 ${rows}

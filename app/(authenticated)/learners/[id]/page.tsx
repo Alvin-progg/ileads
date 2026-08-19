@@ -26,7 +26,7 @@ export default async function EditLearnerPage({
 
   return (
     <main className="mx-auto max-w-lg p-6">
-      <h1 className="mb-6 text-xl font-bold">
+      <h1 className="mb-6 text-2xl font-bold">
         Edit {learner.first_name} {learner.last_name}
       </h1>
       <LearnerForm

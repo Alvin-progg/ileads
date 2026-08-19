@@ -117,7 +117,7 @@ export function LearnerTable({
           </thead>
           <tbody>
             {filtered.map((l) => (
-              <tr key={l.id} className="border-t border-neutral-100">
+              <tr key={l.id} className="border-t border-neutral-100 transition-colors hover:bg-neutral-50">
                 <td className="px-4 py-2.5 font-mono text-[13px] text-neutral-500">
                   {l.lrn}
                 </td>

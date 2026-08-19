@@ -39,7 +39,7 @@ import {
   type TrackerTableData,
 } from "../encoding-progress-chart.tsx";
 import { GroupedLevelChart, type LevelGroup } from "./grouped-level-chart.tsx";
-import { ExamMpsChart } from "./exam-mps-chart.tsx";
+import { ExamMpsChart } from "../exam-mps-chart.tsx";
 import { EXAM_MASTERY_THRESHOLD } from "../dashboard-colors.ts";
 
 export const metadata = { title: "School Head Dashboard — I-LEADS" };
