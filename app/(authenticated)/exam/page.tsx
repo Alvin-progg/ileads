@@ -1,12 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
+import { EXAM_GRADES } from "@/lib/grades";
 import { ExamGrid, type Learner, type Subject } from "./exam-grid.tsx";
 
 export const metadata = { title: "Exam Scores — I-LEADS" };
-
-/** Exams span every grade — unlike CRLA/RMA, which are limited to Grades 1–3. */
-const EXAM_GRADES = [1, 2, 3, 4, 5, 6];
 
 export default async function ExamPage({
   searchParams,

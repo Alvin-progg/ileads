@@ -1,19 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { gradeLabel } from "@/lib/grades";
+import { RMA_GRADES, gradeLabel } from "@/lib/grades";
 import { getRmaRules, tryGetRules } from "@/lib/scoring/load.ts";
 import { RmaGrid, type Learner } from "./rma-grid.tsx";
 import type { RmaRowValues } from "./actions.ts";
 
 export const metadata = { title: "RMA — I-LEADS" };
-
-/**
- * Grades with an RMA instrument in `scoring_rules`. Grades 4–6 use a different
- * domain-based instrument that has not been transcribed, so they are not
- * offered rather than shown as an empty grid.
- */
-const RMA_GRADES = [1, 2, 3];
 
 export default async function RmaPage({
   searchParams,

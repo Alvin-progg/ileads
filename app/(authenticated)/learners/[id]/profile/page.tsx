@@ -2,7 +2,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { gradeLabel } from "@/lib/grades";
+import {
+  CRLA_GRADES,
+  EXAM_GRADES,
+  PHILIRI_GRADES,
+  RMA_GRADES,
+  gradeLabel,
+} from "@/lib/grades";
 import {
   getCrlaRules,
   getPhiliriRules,
@@ -20,11 +26,6 @@ import {
 import { PrintButton } from "../../../print-button.tsx";
 
 export const metadata = { title: "Learner Profile — I-LEADS" };
-
-const CRLA_GRADES = [1, 2, 3];
-const RMA_GRADES = [1, 2, 3];
-const PHILIRI_GRADES = [4, 5, 6];
-const EXAM_GRADES = [1, 2, 3, 4, 5, 6];
 
 type Round = { id: number; name: string; sequence: number };
 

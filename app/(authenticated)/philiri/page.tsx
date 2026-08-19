@@ -1,16 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { gradeLabel } from "@/lib/grades";
+import { PHILIRI_GRADES, gradeLabel } from "@/lib/grades";
 import { getPhiliriRules, tryGetRules } from "@/lib/scoring/load.ts";
 import { LANGUAGE_NAMES, orderLanguages } from "@/lib/languages";
 import { PhiliriGrid, type Learner } from "./philiri-grid.tsx";
 import type { PhiliriRowValues } from "./actions.ts";
 
 export const metadata = { title: "Phil-IRI — I-LEADS" };
-
-/** Grades with a Phil-IRI Oral Reading instrument. */
-const PHILIRI_GRADES = [4, 5, 6];
 
 export default async function PhiliriPage({
   searchParams,

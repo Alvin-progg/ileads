@@ -1,16 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { gradeLabel } from "@/lib/grades";
+import { CRLA_GRADES, gradeLabel } from "@/lib/grades";
 import { getCrlaRules } from "@/lib/scoring/load.ts";
 import { LANGUAGE_NAMES, orderLanguages } from "@/lib/languages";
 import { CrlaGrid, type Learner } from "./crla-grid.tsx";
 import type { CrlaRowValues } from "./actions.ts";
 
 export const metadata = { title: "CRLA — I-LEADS" };
-
-/** Grades with a CRLA instrument. */
-const CRLA_GRADES = [1, 2, 3];
 
 export default async function CrlaPage({
   searchParams,

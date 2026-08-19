@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
 import { getGradeTeacherNames } from "@/lib/teachers";
+import { PHILIRI_GRADES } from "@/lib/grades";
 import { SCHOOL, schoolDetailsIncomplete } from "@/lib/school";
 import { getPhiliriRules, tryGetRules } from "@/lib/scoring/load.ts";
 import { orderLanguages } from "@/lib/languages";
@@ -16,9 +17,6 @@ import {
 import { PrintButton } from "../../print-button.tsx";
 
 export const metadata = { title: "Phil-IRI Class Record — I-LEADS" };
-
-/** Grades with a Phil-IRI Oral Reading instrument. */
-const PHILIRI_GRADES = [4, 5, 6];
 
 /** The three rows every tally is split into, in the workbook's order. */
 const SEX_ROWS = [

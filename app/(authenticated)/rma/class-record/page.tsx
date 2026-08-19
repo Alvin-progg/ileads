@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
 import { getGradeTeacherNames } from "@/lib/teachers";
+import { RMA_GRADES } from "@/lib/grades";
 import { SCHOOL, schoolDetailsIncomplete } from "@/lib/school";
 import { getRmaRules, tryGetRules } from "@/lib/scoring/load.ts";
 import { computeRma } from "@/lib/scoring/rma.ts";
@@ -15,9 +16,6 @@ import {
 import { PrintButton } from "../../print-button.tsx";
 
 export const metadata = { title: "RMA Class Record — I-LEADS" };
-
-/** Grades with an RMA instrument. Grades 4–6 use a different one. */
-const RMA_GRADES = [1, 2, 3];
 
 /** The three rows every tally is split into, in the workbook's order. */
 const SEX_ROWS = [

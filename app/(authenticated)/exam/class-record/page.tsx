@@ -2,14 +2,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
 import { getGradeTeacherNames } from "@/lib/teachers";
-import { gradeLabel } from "@/lib/grades";
+import { EXAM_GRADES, gradeLabel } from "@/lib/grades";
 import { SCHOOL, schoolDetailsIncomplete } from "@/lib/school";
 import { summariseExamSubject, type ExamEntry, type Sex } from "@/lib/scoring/exam-summary.ts";
 import { PrintButton } from "../../print-button.tsx";
 
 export const metadata = { title: "Exam Class Record — I-LEADS" };
-
-const EXAM_GRADES = [1, 2, 3, 4, 5, 6];
 
 const SEX_ROWS = [
   { key: "male", label: "Male" },
