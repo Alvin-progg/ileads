@@ -32,6 +32,12 @@ import {
   type PhiliriRow,
   type RmaRow,
 } from "@/lib/dashboard/current-status.ts";
+import {
+  EncodingProgressChart,
+  StatusLegend,
+  type TrackerTableData,
+} from "../encoding-progress-chart.tsx";
+
 export const metadata = { title: "School Head Dashboard — I-LEADS" };
 
 type Round = { id: number; name: string; sequence: number };
@@ -52,10 +58,6 @@ type AtRiskRow = {
   language: string | null;
   level: string;
 };
-
-type TrackerCell = { label: string; encoded: number; enrolled: number };
-type TrackerRow = { label: string; cells: TrackerCell[] };
-type TrackerTableData = { title: string; columns: string[]; rows: TrackerRow[] };
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient();
@@ -504,43 +506,20 @@ export default async function AdminDashboardPage() {
         )}
       </section>
 
-      <section className="mb-8">
+      <section>
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
           Encoding Progress
         </h2>
-        <p className="mb-3 text-[12px] text-neutral-500">
+        <p className="mb-1 text-[12px] text-neutral-500">
           Learners with a record for that round, out of learners enrolled in that grade.
         </p>
+        <StatusLegend />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <TrackerTable data={crlaTracker} />
-          <TrackerTable data={rmaTracker} />
-          <TrackerTable data={philiriTracker} />
-          <TrackerTable data={examTracker} />
+          <EncodingProgressChart data={crlaTracker} />
+          <EncodingProgressChart data={rmaTracker} />
+          <EncodingProgressChart data={philiriTracker} />
+          <EncodingProgressChart data={examTracker} />
         </div>
-      </section>
-
-      <section>
-        <h2 className="mb-2 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
-          Quick links
-        </h2>
-        <nav className="flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
-          {[
-            ["/admin/teachers", "Manage teacher assignments"],
-            ["/learners", "Learners"],
-            ["/crla", "CRLA entry"],
-            ["/crla/class-record", "CRLA class record"],
-            ["/rma", "RMA entry"],
-            ["/rma/class-record", "RMA class record"],
-            ["/exam", "Exam entry"],
-            ["/exam/class-record", "Exam class record"],
-            ["/philiri", "Phil-IRI entry"],
-            ["/philiri/class-record", "Phil-IRI class record"],
-          ].map(([href, label]) => (
-            <Link key={href} href={href} className="text-emerald-700 hover:underline">
-              {label} →
-            </Link>
-          ))}
-        </nav>
       </section>
     </main>
   );
@@ -681,47 +660,3 @@ function GradeCard({
   );
 }
 
-function TrackerTable({ data }: { data: TrackerTableData }) {
-  if (data.rows.length === 0) return null;
-
-  return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <h3 className="mb-2 text-[13px] font-bold">{data.title}</h3>
-      <table className="w-full border-collapse text-[12px]">
-        <thead>
-          <tr className="border-b border-neutral-200 text-[10px] uppercase tracking-wide text-neutral-500">
-            <th className="py-1 text-left font-medium">Grade</th>
-            {data.columns.map((c) => (
-              <th key={c} className="py-1 text-right font-medium">
-                {c}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.rows.map((row) => (
-            <tr key={row.label} className="border-b border-neutral-100">
-              <td className="py-1">{row.label}</td>
-              {row.cells.map((cell, i) => {
-                const pct = cell.enrolled === 0 ? null : (cell.encoded / cell.enrolled) * 100;
-                const tone =
-                  pct === null
-                    ? "text-neutral-300"
-                    : pct >= 100
-                      ? "text-emerald-700"
-                      : pct >= 50
-                        ? "text-amber-700"
-                        : "text-red-700";
-                return (
-                  <td key={i} className={`py-1 text-right tabular-nums ${tone}`}>
-                    {pct === null ? "—" : `${cell.encoded}/${cell.enrolled} (${pct.toFixed(0)}%)`}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
