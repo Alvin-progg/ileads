@@ -47,7 +47,7 @@ const ROUNDS = [
 // EPP starts Grade 4. hps_per_quarter is a placeholder, not real DepEd
 // figures — actual HPS belongs to a later ticket.
 // ---------------------------------------------------------------------
-const CORE_K2 = [
+const CORE_G1_2 = [
   "GMRC",
   "English Reading & Literacy",
   "Filipino Language",
@@ -56,7 +56,7 @@ const CORE_K2 = [
   "Music & Arts",
   "PE & Health",
 ];
-const CORE_G3 = [...CORE_K2, "Science"];
+const CORE_G3 = [...CORE_G1_2, "Science"];
 const CORE_G4_6 = [
   "GMRC",
   "English Reading & Literacy",
@@ -70,7 +70,7 @@ const CORE_G4_6 = [
 ];
 
 function subjectsFor(grade) {
-  if (grade <= 2) return CORE_K2;
+  if (grade <= 2) return CORE_G1_2;
   if (grade === 3) return CORE_G3;
   return CORE_G4_6;
 }
@@ -78,7 +78,7 @@ function subjectsFor(grade) {
 const HPS_PLACEHOLDER = { Q1: 50, Q2: 50, Q3: 50, Q4: 50 };
 
 const LEARNING_AREAS = [];
-for (let grade = 0; grade <= 6; grade++) {
+for (let grade = 1; grade <= 6; grade++) {
   subjectsFor(grade).forEach((name, i) => {
     LEARNING_AREAS.push({
       name,
@@ -90,9 +90,9 @@ for (let grade = 0; grade <= 6; grade++) {
 }
 
 // ---------------------------------------------------------------------
-// learners — 10 per grade K-6, deterministic (no Math.random, so a
+// learners — 10 per grade 1-6, deterministic (no Math.random, so a
 // second run produces identical rows). Fake 12-digit LRN scheme:
-// "9" + grade digit (0-6) + 2-digit sequence + 8 zero-pad digits.
+// "9" + grade digit (1-6) + 2-digit sequence + 8 zero-pad digits.
 // ---------------------------------------------------------------------
 const SURNAMES = [
   "Santos", "Reyes", "Cruz", "Bautista", "Garcia", "Mendoza", "Torres",
@@ -113,7 +113,7 @@ function lrnFor(grade, seq) {
 }
 
 function birthdateFor(grade, seq) {
-  // typical age-for-grade: K~5, G1~6 ... G6~11, +/- a year alternating by seq
+  // typical age-for-grade: G1~6 ... G6~11, +/- a year alternating by seq
   const baseAge = 5 + grade;
   const age = baseAge + (seq % 2 === 0 ? 0 : 1);
   const year = 2026 - age;
@@ -123,7 +123,7 @@ function birthdateFor(grade, seq) {
 }
 
 const LEARNERS = [];
-for (let grade = 0; grade <= 6; grade++) {
+for (let grade = 1; grade <= 6; grade++) {
   for (let seq = 0; seq < 10; seq++) {
     const isFemale = seq % 2 === 0;
     const surname = SURNAMES[(grade * 3 + seq) % SURNAMES.length];

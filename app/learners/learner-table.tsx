@@ -137,6 +137,12 @@ export function LearnerTable({
                 <td className="px-4 py-2.5 text-right">
                   <div className="flex justify-end gap-3">
                     <Link
+                      href={`/learners/${l.id}/profile`}
+                      className="text-emerald-700 hover:underline"
+                    >
+                      Profile
+                    </Link>
+                    <Link
                       href={`/learners/${l.id}`}
                       className="text-emerald-700 hover:underline"
                     >

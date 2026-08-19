@@ -16,7 +16,7 @@ This repo uses Next.js 16.3.1 — newer than most training data. Per AGENTS.md, 
 
 ## What this project is
 
-I-LEADS: prototype web app for a DepEd action research at Ligaya Primary School (multigrade school, 4 teachers + 1 school head, ~60 learners, Grades K–6). It replaces a manual Excel workflow for learner assessment records. The research measures reliability, so data loss is the #1 failure mode to design against.
+I-LEADS: prototype web app for a DepEd action research at Ligaya Primary School (multigrade school, 4 teachers + 1 school head, ~60 learners, Grades 1–6; the school has no Kindergarten section). It replaces a manual Excel workflow for learner assessment records. The research measures reliability, so data loss is the #1 failure mode to design against.
 
 Stack: Next.js App Router + TypeScript + Tailwind v4, Supabase cloud (Postgres, Auth, RLS), deployed on Vercel, all free tier. Currently a fresh create-next-app scaffold — Supabase is not wired up yet.
 

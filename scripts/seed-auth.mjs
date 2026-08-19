@@ -24,10 +24,10 @@ const supabase = createClient(url, serviceKey, {
 
 const PASSWORD = "password123";
 
-// grade_level: 0 = K … 6. Multigrade: 4 teachers cover K–6.
+// grade_level: 1 … 6. Multigrade: 4 teachers cover Grades 1–6.
 const users = [
   { email: "head@example.com", full_name: "Maria Santos", role: "head", grades: [] },
-  { email: "teacher1@example.com", full_name: "Ana Reyes", role: "teacher", grades: [0, 1] },
+  { email: "teacher1@example.com", full_name: "Ana Reyes", role: "teacher", grades: [1] },
   { email: "teacher2@example.com", full_name: "Jose Cruz", role: "teacher", grades: [2, 3] },
   { email: "teacher3@example.com", full_name: "Liza Bautista", role: "teacher", grades: [4, 5] },
   { email: "teacher4@example.com", full_name: "Pedro Flores", role: "teacher", grades: [6] },
@@ -69,7 +69,7 @@ for (const u of users) {
         { onConflict: "teacher_id,grade_level", ignoreDuplicates: true }
       );
     if (aerr) console.error(`  assignments failed: ${aerr.message}`);
-    else console.log(`  grades: ${u.grades.map((g) => (g === 0 ? "K" : g)).join(", ")}`);
+    else console.log(`  grades: ${u.grades.join(", ")}`);
   }
 }
 

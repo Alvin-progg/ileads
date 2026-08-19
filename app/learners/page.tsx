@@ -22,9 +22,7 @@ export default async function LearnersPage() {
           <p className="text-sm text-neutral-500">
             {viewer.isHead
               ? "All grade levels"
-              : `Grade${viewer.allowedGrades.length > 1 ? "s" : ""} ${viewer.allowedGrades
-                  .map((g) => (g === 0 ? "K" : g))
-                  .join(", ")}`}
+              : `Grade${viewer.allowedGrades.length > 1 ? "s" : ""} ${viewer.allowedGrades.join(", ")}`}
           </p>
         </div>
         <Link

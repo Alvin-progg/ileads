@@ -169,3 +169,42 @@ export type RmaResult = {
   /** Keyed by task. Tasks with an unknown max are absent, never false. */
   taskMastery: Record<string, boolean>;
 };
+
+// ---------------------------------------------------------------------------
+// Phil-IRI
+// ---------------------------------------------------------------------------
+
+/** A Word Reading / Comprehension band, matched against the score percent (0–100). */
+export type PhiliriLevelBand = Predicate & { label: string };
+
+export type PhiliriLanguageRules = {
+  /** Ordered bands for Word Reading Score %; first match wins. */
+  wordReadingLevels: PhiliriLevelBand[];
+  /** Ordered bands for Comprehension Score %; first match wins. */
+  comprehensionLevels: PhiliriLevelBand[];
+};
+
+export type PhiliriRules = {
+  languages: Record<string, PhiliriLanguageRules>;
+};
+
+export type PhiliriInput = {
+  wordCount: number | null;
+  miscues: number | null;
+  comprehensionItems: number | null;
+  comprehensionCorrect: number | null;
+};
+
+export type PhiliriResult = {
+  /** Fraction 0–1. */
+  wordReadingScore: number | null;
+  wordReadingLevel: string | null;
+  /** Fraction 0–1. */
+  comprehensionScore: number | null;
+  comprehensionLevel: string | null;
+  /**
+   * The worse of wordReadingLevel/comprehensionLevel (Frustration is worst,
+   * Independent is best). Null unless both component levels are known.
+   */
+  overallLevel: string | null;
+};

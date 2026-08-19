@@ -293,7 +293,7 @@ export function ExamGrid({
                 disabled={leaving}
                 onClick={() => go(hrefFor({ grade: g }))}
               >
-                {g === 0 ? "K" : g}
+                {g}
               </Tab>
             ))}
           </TabGroup>

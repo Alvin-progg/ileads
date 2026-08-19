@@ -69,6 +69,18 @@ export default async function MyClassPage() {
         >
           Exam class record →
         </Link>
+        <Link
+          href="/philiri"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          Phil-IRI entry →
+        </Link>
+        <Link
+          href="/philiri/class-record"
+          className="text-sm font-medium text-emerald-700 hover:underline"
+        >
+          Phil-IRI class record →
+        </Link>
       </nav>
     </main>
   );

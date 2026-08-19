@@ -14,6 +14,8 @@ import type {
   CrlaInputLimits,
   CrlaLanguageRules,
   CrlaRules,
+  PhiliriLanguageRules,
+  PhiliriRules,
   RmaRules,
   RmaTask,
 } from "./types.ts";
@@ -298,6 +300,47 @@ export const RMA_G3: RmaRules = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// Phil-IRI (Oral Reading, G4-6)
+// ---------------------------------------------------------------------------
+
+/**
+ * Word Reading / Comprehension bands, transcribed from the legend text on
+ * every sheet of files/Phil-IRI-Form-Oral-Reading-1.xlsx ("Independent =
+ * 97-100%", "Instructional = 90-96%", "Frustration = 89% and below"; same
+ * pattern at 80/59/58 for comprehension). Identical across Grade 5 FIL, G5
+ * ENG, G6 FIL and G6 ENG in the sampled workbook — Phil-IRI's cut-offs are
+ * instrument-wide percentages, not grade-tuned point totals like CRLA's, so
+ * the same bands are used for Grade 4 too even though no G4 sheet was in the
+ * sample.
+ *
+ * The live formulas on those sheets disagree with their own legend at the
+ * 89-90 boundary (Filipino tabs test >89 for Frustration, English tabs test
+ * <89, leaving 89-90 undefined in both) — a bug in the template, not a
+ * DepEd cut-off. The gte/lt bands below match the legend text instead.
+ */
+const PHILIRI_BANDS: PhiliriLanguageRules = {
+  wordReadingLevels: [
+    { label: "Independent", gte: 97 },
+    { label: "Instructional", gte: 90 },
+    { label: "Frustration", lt: 90 },
+  ],
+  comprehensionLevels: [
+    { label: "Independent", gte: 80 },
+    { label: "Instructional", gte: 59 },
+    { label: "Frustration", lt: 59 },
+  ],
+};
+
+const PHILIRI_LANGUAGES: PhiliriRules["languages"] = {
+  FIL: PHILIRI_BANDS,
+  ENG: PHILIRI_BANDS,
+};
+
+export const PHILIRI_G4: PhiliriRules = { languages: PHILIRI_LANGUAGES };
+export const PHILIRI_G5: PhiliriRules = { languages: PHILIRI_LANGUAGES };
+export const PHILIRI_G6: PhiliriRules = { languages: PHILIRI_LANGUAGES };
+
 /** Everything seeded into scoring_rules, keyed as (tool, grade_level, version). */
 export const SEED_RULES = [
   { tool: "crla", grade_level: 1, version: "CRLA2v1", rules: CRLA_G1 },
@@ -306,4 +349,7 @@ export const SEED_RULES = [
   { tool: "rma", grade_level: 1, version: "RMA2v2", rules: RMA_G1 },
   { tool: "rma", grade_level: 2, version: "RMA2v2", rules: RMA_G2 },
   { tool: "rma", grade_level: 3, version: "RMA2v2", rules: RMA_G3 },
+  { tool: "philiri", grade_level: 4, version: "PhilIRIv1", rules: PHILIRI_G4 },
+  { tool: "philiri", grade_level: 5, version: "PhilIRIv1", rules: PHILIRI_G5 },
+  { tool: "philiri", grade_level: 6, version: "PhilIRIv1", rules: PHILIRI_G6 },
 ] as const;

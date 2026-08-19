@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { GRADE_LEVELS, gradeLabel } from "@/lib/grades";
 import { saveTeacherGrades } from "./actions";
-
-const GRADE_LABELS = ["K", "1", "2", "3", "4", "5", "6"];
 
 export function TeacherGradeRow({
   teacherId,
@@ -40,7 +39,7 @@ export function TeacherGradeRow({
     <div className="flex flex-wrap items-center gap-4 border-b border-neutral-100 py-4">
       <p className="w-40 shrink-0 font-medium">{fullName}</p>
       <div className="flex gap-1.5" role="group" aria-label={`${fullName}'s grade levels`}>
-        {GRADE_LABELS.map((label, grade) => {
+        {GRADE_LEVELS.map((grade) => {
           const active = grades.has(grade);
           return (
             <button
@@ -55,7 +54,7 @@ export function TeacherGradeRow({
                   : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200")
               }
             >
-              {label}
+              {gradeLabel(grade)}
             </button>
           );
         })}
