@@ -13,7 +13,7 @@ export default function LoginPage() {
           "#f6faf8",
       }}
     >
-      <div className="fade-up w-full max-w-[380px] rounded-2xl border border-neutral-900/5 bg-white px-8 pt-9 pb-8 shadow-[0_12px_32px_rgba(6,78,59,0.10),0_2px_8px_rgba(6,78,59,0.05)]">
+      <div className="fade-up w-full max-w-[380px] rounded-2xl border border-neutral-900/5 bg-white px-8 pt-8 pb-9 shadow-[0_12px_32px_rgba(6,78,59,0.10),0_2px_8px_rgba(6,78,59,0.05)]">
         <div
           aria-hidden="true"
           className="mb-4 grid h-10 w-10 place-items-center rounded-[10px] bg-emerald-600 font-bold text-white"

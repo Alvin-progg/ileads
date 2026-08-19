@@ -1,20 +1,11 @@
 "use client";
 
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { STATUS, MUTED_TRACK as TRACK_COLOR } from "./dashboard-colors.ts";
 
 export type TrackerCell = { label: string; encoded: number; enrolled: number };
 export type TrackerRow = { label: string; cells: TrackerCell[] };
 export type TrackerTableData = { title: string; columns: string[]; rows: TrackerRow[] };
-
-// Fixed status palette — never themed, never reused for series identity.
-// See the dataviz skill's references/palette.md.
-const STATUS = {
-  good: "#0ca30c",
-  warning: "#fab219",
-  critical: "#d03b3b",
-};
-
-const TRACK_COLOR = "#e1e0d9"; // hairline gridline gray — the meter's unfilled track
 
 function statusFor(pct: number): keyof typeof STATUS {
   if (pct >= 100) return "good";

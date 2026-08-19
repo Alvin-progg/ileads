@@ -18,7 +18,7 @@ export type { BySex, PercentRow, Sex, TallyRow };
  * instrument-wide percentages, not grade-tuned point totals, so there is no
  * rules-driven label list to read.
  */
-const LEVELS = ["Independent", "Instructional", "Frustration"];
+export const LEVELS = ["Independent", "Instructional", "Frustration"];
 
 export type PhiliriSummaryEntry = {
   sex: Sex;

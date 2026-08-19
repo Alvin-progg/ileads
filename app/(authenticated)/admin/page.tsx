@@ -16,10 +16,10 @@ import {
   getRmaRules,
   tryGetRules,
 } from "@/lib/scoring/load.ts";
-import { orderLanguages } from "@/lib/languages";
+import { LANGUAGE_NAMES, orderLanguages } from "@/lib/languages";
 import { summarise } from "@/lib/scoring/class-summary.ts";
 import { summariseRma } from "@/lib/scoring/rma-summary.ts";
-import { summarisePhiliri } from "@/lib/scoring/philiri-summary.ts";
+import { summarisePhiliri, LEVELS as PHILIRI_LEVELS } from "@/lib/scoring/philiri-summary.ts";
 import { summariseExamSubject, type ExamEntry } from "@/lib/scoring/exam-summary.ts";
 import type { CrlaRules, PhiliriRules, RmaRules } from "@/lib/scoring/types.ts";
 import {
@@ -28,6 +28,7 @@ import {
   currentRmaEntries,
   encodedLearnerIdsByKey,
   hasAnyRmaScore,
+  philiriEntriesForRound,
   type CrlaRow,
   type PhiliriRow,
   type RmaRow,
@@ -37,6 +38,9 @@ import {
   StatusLegend,
   type TrackerTableData,
 } from "../encoding-progress-chart.tsx";
+import { GroupedLevelChart, type LevelGroup } from "./grouped-level-chart.tsx";
+import { ExamMpsChart } from "./exam-mps-chart.tsx";
+import { EXAM_MASTERY_THRESHOLD } from "../dashboard-colors.ts";
 
 export const metadata = { title: "School Head Dashboard — I-LEADS" };
 
@@ -227,6 +231,7 @@ export default async function AdminDashboardPage() {
     let rmaCard: {
       summary: ReturnType<typeof summariseRma>;
       configured: boolean;
+      worstLabel: string | null;
     } | null = null;
 
     if (RMA_GRADES.includes(grade)) {
@@ -239,8 +244,8 @@ export default async function AdminDashboardPage() {
           rules
         );
         const configured = rules.levels.length > 0;
-        if (configured) {
-          const worstLabel = rules.levels[0].label;
+        const worstLabel = configured ? rules.levels[0].label : null;
+        if (configured && worstLabel) {
           for (const e of entries) {
             if (e.proficiencyLevel !== null && e.proficiencyLevel === worstLabel) {
               const learner = learnerById.get(e.learnerId)!;
@@ -255,7 +260,7 @@ export default async function AdminDashboardPage() {
             }
           }
         }
-        rmaCard = { summary: summariseRma(entries, rules), configured };
+        rmaCard = { summary: summariseRma(entries, rules), configured, worstLabel };
       }
     }
 
@@ -333,6 +338,92 @@ export default async function AdminDashboardPage() {
 
     return { grade, enrolled, teachers: teacherNamesByGrade.get(grade) ?? [], crlaCard, rmaCard, philiriCard, examCard };
   });
+
+  // ---------------------------------------------------------------------
+  // Score distribution charts — a rendering layer on gradeCards, no new
+  // Supabase queries. "not-applicable" = the language/round doesn't apply
+  // to this grade; "not-configured" = the grade has no level bands yet
+  // (e.g. RMA G1/G2); "not-enough-data" = configured, but nobody assessed.
+  // ---------------------------------------------------------------------
+
+  const crlaLanguages = orderLanguages(
+    Array.from(
+      new Set(CRLA_GRADES.flatMap((g) => Object.keys(crlaRulesByGrade.get(g)?.languages ?? {})))
+    )
+  );
+  const crlaCharts = crlaLanguages.map((language) => {
+    const levels =
+      CRLA_GRADES.map((g) => crlaRulesByGrade.get(g)).find((rules) => rules?.languages[language])
+        ?.languages[language].part1.levels.map((l) => l.label) ?? [];
+    const groups: LevelGroup[] = CRLA_GRADES.map((grade) => {
+      const entry = gradeCards.find((c) => c.grade === grade)?.crlaCard?.find((x) => x.language === language);
+      if (!entry) return { key: `g${grade}`, label: `Grade ${grade}`, status: "not-applicable", assessed: 0, bars: null };
+      if (entry.summary.assessed === 0) return { key: `g${grade}`, label: `Grade ${grade}`, status: "not-enough-data", assessed: 0, bars: null };
+      return {
+        key: `g${grade}`,
+        label: `Grade ${grade}`,
+        status: "ok",
+        assessed: entry.summary.assessed,
+        bars: entry.summary.levels.map((r) => ({ level: r.label, value: r.total })),
+      };
+    });
+    return { language, levels, groups };
+  });
+
+  const rmaLevels = rmaRulesByGrade.get(3)?.levels.map((l) => l.label) ?? [];
+  const rmaGroups: LevelGroup[] = RMA_GRADES.map((grade) => {
+    const card = gradeCards.find((c) => c.grade === grade)?.rmaCard;
+    if (!card) return { key: `g${grade}`, label: `Grade ${grade}`, status: "not-applicable", assessed: 0, bars: null };
+    if (!card.configured) return { key: `g${grade}`, label: `Grade ${grade}`, status: "not-configured", assessed: card.summary.assessed, bars: null };
+    if (card.summary.assessed === 0) return { key: `g${grade}`, label: `Grade ${grade}`, status: "not-enough-data", assessed: 0, bars: null };
+    return {
+      key: `g${grade}`,
+      label: `Grade ${grade}`,
+      status: "ok",
+      assessed: card.summary.assessed,
+      bars: card.summary.levels.map((r) => ({ level: r.label, value: r.total })),
+    };
+  });
+
+  const philiriLanguages = orderLanguages(
+    Array.from(
+      new Set(PHILIRI_GRADES.flatMap((g) => Object.keys(philiriRulesByGrade.get(g)?.languages ?? {})))
+    )
+  );
+  const philiriCharts = philiriLanguages.flatMap((language) =>
+    philiriRounds.map((round) => {
+      const groups: LevelGroup[] = PHILIRI_GRADES.map((grade) => {
+        const rules = philiriRulesByGrade.get(grade);
+        const langRules = rules?.languages[language];
+        if (!langRules) return { key: `g${grade}`, label: `Grade ${grade}`, status: "not-applicable", assessed: 0, bars: null };
+        const entries = philiriEntriesForRound(
+          learnersByGrade.get(grade) ?? [],
+          philiriRowsByGrade.get(grade) ?? [],
+          round.id,
+          langRules,
+          language
+        );
+        const summary = summarisePhiliri(entries);
+        if (summary.assessed === 0) return { key: `g${grade}`, label: `Grade ${grade}`, status: "not-enough-data", assessed: 0, bars: null };
+        return {
+          key: `g${grade}`,
+          label: `Grade ${grade}`,
+          status: "ok",
+          assessed: summary.assessed,
+          bars: summary.overallLevels.map((r) => ({ level: r.label, value: r.total })),
+        };
+      });
+      return { language, roundName: round.name, levels: PHILIRI_LEVELS, groups };
+    })
+  );
+
+  const examCharts = EXAM_GRADES.map((grade) => ({
+    grade,
+    subjects: (gradeCards.find((c) => c.grade === grade)?.examCard ?? []).map((s) => ({
+      subject: s.subject,
+      mps: s.mps,
+    })),
+  }));
 
   // ---------------------------------------------------------------------
   // Encoding progress trackers
@@ -430,7 +521,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="mx-auto max-w-[1400px] p-6">
-      <h1 className="mb-6 text-xl font-bold">School Head Dashboard</h1>
+      <h1 className="mb-6 text-2xl font-bold">School Head Dashboard</h1>
 
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatTile label="Total Enrolled" value={learners.length} tone="neutral" />
@@ -459,6 +550,38 @@ export default async function AdminDashboardPage() {
 
       <section className="mb-8">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
+          Score Distributions
+        </h2>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {crlaCharts.map((c) => (
+            <GroupedLevelChart
+              key={`crla-${c.language}`}
+              title="CRLA Level Distribution"
+              subtitle={LANGUAGE_NAMES[c.language] ?? c.language}
+              levels={c.levels}
+              groups={c.groups}
+            />
+          ))}
+          <GroupedLevelChart title="RMA Proficiency Distribution" levels={rmaLevels} groups={rmaGroups} />
+          {philiriCharts.map((c) => (
+            <GroupedLevelChart
+              key={`philiri-${c.language}-${c.roundName}`}
+              title="Phil-IRI Overall Level Distribution"
+              subtitle={`${LANGUAGE_NAMES[c.language] ?? c.language} · ${c.roundName}`}
+              levels={c.levels}
+              groups={c.groups}
+            />
+          ))}
+        </div>
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {examCharts.map((c) => (
+            <ExamMpsChart key={`exam-${c.grade}`} grade={c.grade} subjects={c.subjects} />
+          ))}
+        </div>
+      </section>
+
+      <section className="mb-8">
+        <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
           At-Risk Learners
         </h2>
         {atRisk.length === 0 ? (
@@ -480,7 +603,7 @@ export default async function AdminDashboardPage() {
               </thead>
               <tbody>
                 {atRisk.map((row, i) => (
-                  <tr key={i} className="border-t border-neutral-100">
+                  <tr key={i} className="border-t border-neutral-100 transition-colors hover:bg-neutral-50">
                     <td className="px-3 py-1.5">{row.name}</td>
                     <td className="px-3 py-1.5">{row.grade}</td>
                     <td className="px-3 py-1.5">{row.instrument}</td>
@@ -538,31 +661,50 @@ function StatTile({
   value: number;
   tone: "good" | "warn" | "neutral";
 }) {
-  const toneStyle = {
-    good: "text-emerald-700",
-    warn: "text-amber-700",
-    neutral: "text-neutral-900",
+  const style = {
+    good: { text: "text-emerald-700", accent: "border-l-emerald-500", wash: "bg-emerald-50/40" },
+    warn: { text: "text-amber-700", accent: "border-l-amber-500", wash: "bg-amber-50/40" },
+    neutral: { text: "text-neutral-900", accent: "border-l-neutral-300", wash: "bg-white" },
   }[tone];
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+    <div
+      className={`rounded-xl border border-l-4 border-neutral-200 p-4 ${style.accent} ${style.wash}`}
+    >
       <p className="text-[11px] uppercase tracking-wide text-neutral-500">{label}</p>
-      <p className={`mt-1 text-2xl font-bold tabular-nums ${toneStyle}`}>{value}</p>
+      <p className={`mt-1 text-2xl font-bold tabular-nums ${style.text}`}>{value}</p>
     </div>
   );
 }
 
-function LevelTags({ rows }: { rows: { label: string; total: number }[] }) {
+/**
+ * `dangerLabel` highlights the instrument's lowest band in red when it has
+ * learners in it — the same visual language as the At-Risk table below —
+ * so the flag is visible here without having to cross-reference that table.
+ */
+function LevelTags({
+  rows,
+  dangerLabel,
+}: {
+  rows: { label: string; total: number }[];
+  dangerLabel?: string | null;
+}) {
   return (
     <div className="flex flex-wrap gap-1">
-      {rows.map((r) => (
-        <span
-          key={r.label}
-          className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-700"
-        >
-          {r.label}: {r.total}
-        </span>
-      ))}
+      {rows.map((r) => {
+        const isDanger = dangerLabel !== null && dangerLabel !== undefined && r.label === dangerLabel && r.total > 0;
+        return (
+          <span
+            key={r.label}
+            className={
+              "rounded-full px-2 py-0.5 text-[11px] font-medium " +
+              (isDanger ? "bg-red-50 text-red-700" : "bg-neutral-100 text-neutral-700")
+            }
+          >
+            {r.label}: <span className="tabular-nums">{r.total}</span>
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -575,7 +717,7 @@ function GradeCard({
     enrolled: number;
     teachers: string[];
     crlaCard: { language: string; summary: ReturnType<typeof summarise>; worstLabel: string }[] | null;
-    rmaCard: { summary: ReturnType<typeof summariseRma>; configured: boolean } | null;
+    rmaCard: { summary: ReturnType<typeof summariseRma>; configured: boolean; worstLabel: string | null } | null;
     philiriCard: { language: string; summary: ReturnType<typeof summarisePhiliri> }[] | null;
     examCard: { subject: string; roundName: string | null; mps: number | null }[] | null;
   };
@@ -595,10 +737,10 @@ function GradeCard({
             <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
               CRLA
             </p>
-            {card.crlaCard.map(({ language, summary }) => (
+            {card.crlaCard.map(({ language, summary, worstLabel }) => (
               <div key={language} className="mt-1">
                 <p className="text-[12px] font-medium text-neutral-600">{language}</p>
-                <LevelTags rows={summary.levels} />
+                <LevelTags rows={summary.levels} dangerLabel={worstLabel} />
               </div>
             ))}
           </div>
@@ -610,7 +752,7 @@ function GradeCard({
               RMA
             </p>
             {card.rmaCard.configured ? (
-              <LevelTags rows={card.rmaCard.summary.levels} />
+              <LevelTags rows={card.rmaCard.summary.levels} dangerLabel={card.rmaCard.worstLabel} />
             ) : (
               <p className="text-[12px] text-amber-700">
                 Levels not configured for this grade ({card.rmaCard.summary.assessed} scored).
@@ -627,7 +769,7 @@ function GradeCard({
             {card.philiriCard.map(({ language, summary }) => (
               <div key={language} className="mt-1">
                 <p className="text-[12px] font-medium text-neutral-600">{language}</p>
-                <LevelTags rows={summary.overallLevels} />
+                <LevelTags rows={summary.overallLevels} dangerLabel="Frustration" />
               </div>
             ))}
           </div>
@@ -639,15 +781,23 @@ function GradeCard({
               Exam — class MPS
             </p>
             <div className="mt-1 flex flex-wrap gap-1">
-              {card.examCard.map((s) => (
-                <span
-                  key={s.subject}
-                  className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-700"
-                  title={s.roundName ?? undefined}
-                >
-                  {s.subject}: {s.mps !== null ? `${s.mps.toFixed(0)}%` : "not yet encoded"}
-                </span>
-              ))}
+              {card.examCard.map((s) => {
+                const tone =
+                  s.mps === null
+                    ? "bg-neutral-100 text-neutral-700"
+                    : s.mps >= EXAM_MASTERY_THRESHOLD
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-red-50 text-red-700";
+                return (
+                  <span
+                    key={s.subject}
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${tone}`}
+                    title={s.roundName ?? undefined}
+                  >
+                    {s.subject}: {s.mps !== null ? <span className="tabular-nums">{s.mps.toFixed(0)}%</span> : "not yet encoded"}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}

@@ -231,6 +231,56 @@ export function currentPhiliriEntries(
   });
 }
 
+/**
+ * One entry per learner in `learners`, using each learner's row for a
+ * specific round (not the latest) — for charts that need to compare rounds
+ * (e.g. Phil-IRI Pre vs Post) instead of collapsing to current status.
+ */
+export function philiriEntriesForRound(
+  learners: LearnerRef[],
+  rows: PhiliriRow[],
+  roundId: number,
+  langRules: PhiliriLanguageRules,
+  language: string
+): PhiliriCurrentEntry[] {
+  const byLearner = new Map(
+    rows
+      .filter((r) => r.round_id === roundId && r.language === language)
+      .map((r) => [r.learner_id, r])
+  );
+
+  return learners.map((learner) => {
+    const raw = byLearner.get(learner.id);
+    if (!raw) {
+      return {
+        learnerId: learner.id,
+        sex: learner.sex,
+        wordReadingLevel: null,
+        comprehensionLevel: null,
+        overallLevel: null,
+      };
+    }
+
+    const computed = computePhiliri(
+      {
+        wordCount: raw.word_count,
+        miscues: raw.miscues,
+        comprehensionItems: raw.comprehension_items,
+        comprehensionCorrect: raw.comprehension_correct,
+      },
+      langRules
+    );
+
+    return {
+      learnerId: learner.id,
+      sex: learner.sex,
+      wordReadingLevel: computed.wordReadingLevel,
+      comprehensionLevel: computed.comprehensionLevel,
+      overallLevel: computed.overallLevel,
+    };
+  });
+}
+
 export { pickLatest };
 
 // ---------------------------------------------------------------------------
