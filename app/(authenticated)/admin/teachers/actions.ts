@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { friendlyError } from "@/lib/errors";
 
 export async function saveTeacherGrades(teacherId: string, grades: number[]) {
   const supabase = await createClient();
@@ -9,5 +10,5 @@ export async function saveTeacherGrades(teacherId: string, grades: number[]) {
     p_grades: grades,
   });
 
-  return { error: error?.message ?? null };
+  return { error: error ? friendlyError(error) : null };
 }

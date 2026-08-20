@@ -1,6 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { friendlyError } from "@/lib/errors";
+
+const PERMISSION_MESSAGE = "You can only encode learners in your assigned grades.";
 
 export type RmaRowValues = {
   /** Raw score per task key. Null means not encoded yet, not zero. */
@@ -31,12 +34,7 @@ export async function saveRmaRow(
     { onConflict: "learner_id,round_id" }
   );
 
-  if (error) {
-    if (error.code === "42501") {
-      return { error: "You can only encode learners in your assigned grades." };
-    }
-    return { error: error.message };
-  }
-
-  return { error: null };
+  return {
+    error: error ? friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) : null,
+  };
 }

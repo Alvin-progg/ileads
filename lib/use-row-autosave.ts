@@ -2,13 +2,30 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type SaveStatus = "clean" | "dirty" | "saving" | "saved" | "failed";
+export type SaveStatus = "clean" | "dirty" | "saving" | "saved" | "failed" | "auth-expired";
 
 const DEBOUNCE_MS = 800;
 const BACKOFF_MS = [1000, 2000, 4000, 8000, 16000, 30000];
 
 function backoffFor(attempt: number): number {
   return BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)];
+}
+
+/**
+ * Distinguishes a dead session from a plain network blip. An expiring
+ * *access* token refreshes transparently (Supabase's own client handles
+ * that) — this only matches the rarer case where the *refresh* token itself
+ * is dead: the Server Action's underlying request gets redirected to
+ * /login, and Next's own client throws this exact message because a
+ * redirected Server Action response isn't the RSC payload it expected.
+ * Retrying that with the same dead session can never succeed, so it must
+ * not be treated like an ordinary retryable failure.
+ */
+const AUTH_EXPIRED_PATTERN =
+  /unexpected response was received from the server|jwt expired|session.*expired/i;
+
+function isAuthExpired(message: string): boolean {
+  return AUTH_EXPIRED_PATTERN.test(message);
 }
 
 type RowRuntime = {
@@ -129,13 +146,20 @@ export function useRowAutosave<T>({
 
         if (error) {
           state.attempt += 1;
-          setStatuses((s) => ({ ...s, [rowId]: "failed" }));
+          const authExpired = isAuthExpired(error);
+          setStatuses((s) => ({ ...s, [rowId]: authExpired ? "auth-expired" : "failed" }));
           setLastError((e) => ({ ...e, [rowId]: error! }));
           // Keep retrying indefinitely: an unsaved row is data loss waiting to
-          // happen, so giving up is never the right default.
-          state.timer = setTimeout(() => {
-            void flushRef.current(rowId);
-          }, backoffFor(state.attempt));
+          // happen, so giving up is never the right default — *unless* the
+          // session itself is dead, in which case retrying can never succeed
+          // and would just be silent noise. The value stays in `pending`
+          // (and its localStorage draft) either way; the "online" listener
+          // and a fresh page load after re-login (readDrafts) bring it back.
+          if (!authExpired) {
+            state.timer = setTimeout(() => {
+              void flushRef.current(rowId);
+            }, backoffFor(state.attempt));
+          }
           return false;
         }
 

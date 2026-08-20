@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { friendlyError } from "@/lib/errors";
+
+const PERMISSION_MESSAGE = "You can only manage learners in your assigned grade levels.";
 
 export type LearnerInput = {
   lrn: string;
@@ -14,19 +17,6 @@ export type LearnerInput = {
   grade_level: number;
   status: "enrolled" | "transferred" | "dropped";
 };
-
-function friendlyError(error: { code?: string; message: string }): string {
-  if (error.code === "23505") {
-    return "This LRN is already registered to another learner.";
-  }
-  if (error.code === "23514") {
-    return "LRN must be exactly 12 digits.";
-  }
-  if (error.code === "42501") {
-    return "You can only manage learners in your assigned grade levels.";
-  }
-  return error.message;
-}
 
 function toRow(input: LearnerInput) {
   return {
@@ -46,7 +36,7 @@ export async function createLearner(input: LearnerInput) {
   const supabase = await createClient();
   const { error } = await supabase.from("learners").insert(toRow(input));
 
-  if (error) return { error: friendlyError(error) };
+  if (error) return { error: friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) };
   revalidatePath("/learners");
   return { error: null };
 }
@@ -58,7 +48,7 @@ export async function updateLearner(id: string, input: LearnerInput) {
     .update(toRow(input))
     .eq("id", id);
 
-  if (error) return { error: friendlyError(error) };
+  if (error) return { error: friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) };
   revalidatePath("/learners");
   return { error: null };
 }
@@ -73,7 +63,7 @@ export async function archiveLearner(
     .update({ status })
     .eq("id", id);
 
-  if (error) return { error: friendlyError(error) };
+  if (error) return { error: friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) };
   revalidatePath("/learners");
   return { error: null };
 }
@@ -85,7 +75,7 @@ export async function restoreLearner(id: string) {
     .update({ status: "enrolled" })
     .eq("id", id);
 
-  if (error) return { error: friendlyError(error) };
+  if (error) return { error: friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) };
   revalidatePath("/learners");
   return { error: null };
 }

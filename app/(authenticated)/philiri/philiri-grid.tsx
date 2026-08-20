@@ -63,6 +63,7 @@ const STATUS_LABEL: Record<SaveStatus, string> = {
   saving: "saving…",
   saved: "saved ✓",
   failed: "failed ↻",
+  "auth-expired": "session expired",
 };
 
 const STATUS_STYLE: Record<SaveStatus, string> = {
@@ -71,6 +72,7 @@ const STATUS_STYLE: Record<SaveStatus, string> = {
   saving: "text-amber-600",
   saved: "text-emerald-600",
   failed: "text-red-600 underline",
+  "auth-expired": "text-amber-700 underline",
 };
 
 export function PhiliriGrid({
@@ -197,6 +199,10 @@ export function PhiliriGrid({
     () => Object.values(autosave.statuses).filter((s) => s === "failed").length,
     [autosave.statuses]
   );
+  const authExpiredRows = useMemo(
+    () => Object.values(autosave.statuses).filter((s) => s === "auth-expired").length,
+    [autosave.statuses]
+  );
 
   function hrefFor(next: {
     grade?: number;
@@ -277,6 +283,23 @@ export function PhiliriGrid({
           </button>
         </div>
       </div>
+
+      {authExpiredRows > 0 && (
+        <div className="mb-3 flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
+          <span>
+            Your session expired, so {authExpiredRows} row
+            {authExpiredRows === 1 ? "" : "s"} couldn&apos;t be saved. Your unsaved
+            work is kept on this device and will send automatically once you&apos;re
+            back.
+          </span>
+          <a
+            href={`/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`}
+            className="ml-auto rounded border border-amber-300 px-2 py-0.5 font-medium hover:bg-amber-100"
+          >
+            Log in again
+          </a>
+        </div>
+      )}
 
       {failedRows > 0 && (
         <div className="mb-3 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-700">
@@ -533,7 +556,11 @@ export function PhiliriGrid({
                     <button
                       type="button"
                       onClick={status === "failed" ? flushAll : undefined}
-                      title={autosave.lastError[learner.id] ?? undefined}
+                      title={
+                        status === "auth-expired"
+                          ? "Your session expired. Log in again — your unsaved work is safe."
+                          : (autosave.lastError[learner.id] ?? undefined)
+                      }
                       className={`text-[12px] ${STATUS_STYLE[status]} ${
                         status === "failed" ? "cursor-pointer" : "cursor-default"
                       }`}

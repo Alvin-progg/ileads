@@ -4,6 +4,30 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 
+/** Auth-JS error messages that are already plain language on their own;
+ * anything else falls back to a generic message rather than showing raw
+ * driver/network text. */
+const KNOWN_AUTH_MESSAGES: Record<string, string> = {
+  "Invalid login credentials": "Wrong email or password.",
+  "Email not confirmed": "This account hasn't been confirmed yet. Contact the school head.",
+};
+
+/**
+ * Where to send the teacher after signing in, if they were redirected here
+ * mid-session (e.g. an expired refresh token while a grid had unsaved rows).
+ * Only ever an internal path — rejects protocol-relative ("//host/...") and
+ * anything pointing back at /login, so a crafted `next` can't leave the app
+ * or loop.
+ */
+function safeNextPath(): string | null {
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (!next) return null;
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/login")) {
+    return null;
+  }
+  return next;
+}
+
 const inputClasses =
   "w-full rounded-[10px] border border-neutral-200 bg-neutral-50 px-3.5 py-2.5 " +
   "text-[15px] outline-none transition-colors " +
@@ -25,17 +49,13 @@ export function LoginForm() {
     });
 
     if (error) {
-      toast.error(
-        error.message === "Invalid login credentials"
-          ? "Wrong email or password."
-          : error.message
-      );
+      toast.error(KNOWN_AUTH_MESSAGES[error.message] ?? "Couldn't sign in. Please try again.");
       setSubmitting(false);
       return;
     }
 
     // full navigation so the proxy sees the fresh auth cookies
-    window.location.assign("/");
+    window.location.assign(safeNextPath() ?? "/");
   }
 
   return (

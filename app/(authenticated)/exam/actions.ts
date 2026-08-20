@@ -1,13 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { friendlyError } from "@/lib/errors";
 
-function friendlyError(error: { code?: string; message: string }): string {
-  if (error.code === "42501") {
-    return "You can only encode learners in your assigned grades.";
-  }
-  return error.message;
-}
+const PERMISSION_MESSAGE = "You can only encode learners in your assigned grades.";
 
 /**
  * Writes one learner's score for one subject in one quarter.
@@ -28,7 +24,7 @@ export async function saveExamScore(
     { onConflict: "learner_id,round_id,learning_area_id" }
   );
 
-  return { error: error ? friendlyError(error) : null };
+  return { error: error ? friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) : null };
 }
 
 /**
@@ -49,7 +45,7 @@ export async function saveExamHps(
     p_hps: hps,
   });
 
-  return { error: error ? friendlyError(error) : null };
+  return { error: error ? friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) : null };
 }
 
 /** Writes the Least Mastered Skills note for one subject in one quarter. */
@@ -69,5 +65,5 @@ export async function saveExamNotes(
     { onConflict: "learning_area_id,round_id" }
   );
 
-  return { error: error ? friendlyError(error) : null };
+  return { error: error ? friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) : null };
 }

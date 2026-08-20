@@ -12,7 +12,11 @@ export async function proxy(request: NextRequest) {
 
   if (!user) {
     if (pathname === "/login") return response;
-    return NextResponse.redirect(new URL("/login", request.url));
+    const loginUrl = new URL("/login", request.url);
+    // Carries the teacher back to the exact page they were on (e.g. a grid
+    // with unsaved rows) once they sign back in, instead of the role home.
+    loginUrl.searchParams.set("next", pathname + request.nextUrl.search);
+    return NextResponse.redirect(loginUrl);
   }
 
   const { data: profile } = await supabase

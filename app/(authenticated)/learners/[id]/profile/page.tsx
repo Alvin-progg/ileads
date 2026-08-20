@@ -177,38 +177,40 @@ function CrlaSection({ data }: { data: Awaited<ReturnType<typeof loadCrla>> }) {
           <h3 className="mb-1 text-[12px] font-semibold text-neutral-600">
             {language}
           </h3>
-          <table className="w-full border-collapse text-[12px]">
-            <thead>
-              <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
-                <th className="px-2 py-1 text-left font-medium">Round</th>
-                <th className="px-2 py-1 text-left font-medium">Reading Level</th>
-                <th className="px-2 py-1 text-left font-medium">Reading Profile</th>
-                <th className="px-2 py-1 text-right font-medium">WPM</th>
-                <th className="px-2 py-1 text-left font-medium">Remarks</th>
-              </tr>
-            </thead>
-            <tbody>
-              {perRound.map(({ round, ...cell }) => (
-                <tr key={round.id} className="border-b border-neutral-200">
-                  <td className="px-2 py-1 font-medium">{round.name}</td>
-                  {!cell.encoded ? (
-                    <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
-                      Not yet encoded
-                    </td>
-                  ) : (
-                    <>
-                      <td className="px-2 py-1">{cell.record.readingLevel ?? "—"}</td>
-                      <td className="px-2 py-1">{cell.record.readingProfile ?? "—"}</td>
-                      <td className="px-2 py-1 text-right tabular-nums">
-                        {cell.record.wpm !== null ? cell.record.wpm.toFixed(0) : "—"}
-                      </td>
-                      <td className="px-2 py-1">{cell.remarks ?? ""}</td>
-                    </>
-                  )}
+          <div className="overflow-x-auto print:overflow-visible">
+            <table className="w-full min-w-[520px] border-collapse text-[12px] print:min-w-0">
+              <thead>
+                <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
+                  <th className="px-2 py-1 text-left font-medium">Round</th>
+                  <th className="px-2 py-1 text-left font-medium">Reading Level</th>
+                  <th className="px-2 py-1 text-left font-medium">Reading Profile</th>
+                  <th className="px-2 py-1 text-right font-medium">WPM</th>
+                  <th className="px-2 py-1 text-left font-medium">Remarks</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {perRound.map(({ round, ...cell }) => (
+                  <tr key={round.id} className="border-b border-neutral-200">
+                    <td className="px-2 py-1 font-medium">{round.name}</td>
+                    {!cell.encoded ? (
+                      <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
+                        Not yet encoded
+                      </td>
+                    ) : (
+                      <>
+                        <td className="px-2 py-1">{cell.record.readingLevel ?? "—"}</td>
+                        <td className="px-2 py-1">{cell.record.readingProfile ?? "—"}</td>
+                        <td className="px-2 py-1 text-right tabular-nums">
+                          {cell.record.wpm !== null ? cell.record.wpm.toFixed(0) : "—"}
+                        </td>
+                        <td className="px-2 py-1">{cell.remarks ?? ""}</td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
     </Section>
@@ -272,50 +274,52 @@ function RmaSection({ data }: { data: Awaited<ReturnType<typeof loadRma>> }) {
           RMA scoring rules for this grade have not been loaded.
         </p>
       )}
-      <table className="w-full border-collapse text-[12px]">
-        <thead>
-          <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
-            <th className="px-2 py-1 text-left font-medium">Round</th>
-            <th className="px-2 py-1 text-right font-medium">Total</th>
-            <th className="px-2 py-1 text-right font-medium">%</th>
-            <th className="px-2 py-1 text-left font-medium">Proficiency Level</th>
-            <th className="px-2 py-1 text-left font-medium">Remarks</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.perRound.map((row) => (
-            <tr key={row.round.id} className="border-b border-neutral-200">
-              <td className="px-2 py-1 font-medium">{row.round.name}</td>
-              {!row.encoded ? (
-                <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
-                  Not yet encoded
-                </td>
-              ) : row.notConfigured || !row.computed ? (
-                <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
-                  Level not available
-                </td>
-              ) : (
-                <>
-                  <td className="px-2 py-1 text-right tabular-nums">
-                    {row.computed.total ?? "—"}
-                  </td>
-                  <td className="px-2 py-1 text-right tabular-nums">
-                    {row.computed.percent !== null
-                      ? `${(row.computed.percent * 100).toFixed(0)}%`
-                      : "—"}
-                  </td>
-                  <td className="px-2 py-1">
-                    {data.levelsConfigured
-                      ? (row.computed.proficiencyLevel ?? "level not available")
-                      : "level not available"}
-                  </td>
-                  <td className="px-2 py-1">{row.remarks ?? ""}</td>
-                </>
-              )}
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="w-full min-w-[560px] border-collapse text-[12px] print:min-w-0">
+          <thead>
+            <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
+              <th className="px-2 py-1 text-left font-medium">Round</th>
+              <th className="px-2 py-1 text-right font-medium">Total</th>
+              <th className="px-2 py-1 text-right font-medium">%</th>
+              <th className="px-2 py-1 text-left font-medium">Proficiency Level</th>
+              <th className="px-2 py-1 text-left font-medium">Remarks</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.perRound.map((row) => (
+              <tr key={row.round.id} className="border-b border-neutral-200">
+                <td className="px-2 py-1 font-medium">{row.round.name}</td>
+                {!row.encoded ? (
+                  <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
+                    Not yet encoded
+                  </td>
+                ) : row.notConfigured || !row.computed ? (
+                  <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
+                    Level not available
+                  </td>
+                ) : (
+                  <>
+                    <td className="px-2 py-1 text-right tabular-nums">
+                      {row.computed.total ?? "—"}
+                    </td>
+                    <td className="px-2 py-1 text-right tabular-nums">
+                      {row.computed.percent !== null
+                        ? `${(row.computed.percent * 100).toFixed(0)}%`
+                        : "—"}
+                    </td>
+                    <td className="px-2 py-1">
+                      {data.levelsConfigured
+                        ? (row.computed.proficiencyLevel ?? "level not available")
+                        : "level not available"}
+                    </td>
+                    <td className="px-2 py-1">{row.remarks ?? ""}</td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Section>
   );
 }
@@ -388,42 +392,44 @@ function PhiliriSection({
             <h3 className="mb-1 text-[12px] font-semibold text-neutral-600">
               {language}
             </h3>
-            <table className="w-full border-collapse text-[12px]">
-              <thead>
-                <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
-                  <th className="px-2 py-1 text-left font-medium">Round</th>
-                  <th className="px-2 py-1 text-left font-medium">Word Reading Level</th>
-                  <th className="px-2 py-1 text-left font-medium">Comprehension Level</th>
-                  <th className="px-2 py-1 text-left font-medium">Overall Level</th>
-                  <th className="px-2 py-1 text-left font-medium">Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                {perRound.map(({ round, ...cell }) => (
-                  <tr key={round.id} className="border-b border-neutral-200">
-                    <td className="px-2 py-1 font-medium">{round.name}</td>
-                    {!cell.encoded ? (
-                      <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
-                        Not yet encoded
-                      </td>
-                    ) : (
-                      <>
-                        <td className="px-2 py-1">
-                          {cell.computed.wordReadingLevel ?? "—"}
-                        </td>
-                        <td className="px-2 py-1">
-                          {cell.computed.comprehensionLevel ?? "—"}
-                        </td>
-                        <td className="px-2 py-1 font-medium">
-                          {cell.computed.overallLevel ?? "—"}
-                        </td>
-                        <td className="px-2 py-1">{cell.remarks ?? ""}</td>
-                      </>
-                    )}
+            <div className="overflow-x-auto print:overflow-visible">
+              <table className="w-full min-w-[560px] border-collapse text-[12px] print:min-w-0">
+                <thead>
+                  <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
+                    <th className="px-2 py-1 text-left font-medium">Round</th>
+                    <th className="px-2 py-1 text-left font-medium">Word Reading Level</th>
+                    <th className="px-2 py-1 text-left font-medium">Comprehension Level</th>
+                    <th className="px-2 py-1 text-left font-medium">Overall Level</th>
+                    <th className="px-2 py-1 text-left font-medium">Remarks</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {perRound.map(({ round, ...cell }) => (
+                    <tr key={round.id} className="border-b border-neutral-200">
+                      <td className="px-2 py-1 font-medium">{round.name}</td>
+                      {!cell.encoded ? (
+                        <td colSpan={4} className="px-2 py-1 text-neutral-400 italic">
+                          Not yet encoded
+                        </td>
+                      ) : (
+                        <>
+                          <td className="px-2 py-1">
+                            {cell.computed.wordReadingLevel ?? "—"}
+                          </td>
+                          <td className="px-2 py-1">
+                            {cell.computed.comprehensionLevel ?? "—"}
+                          </td>
+                          <td className="px-2 py-1 font-medium">
+                            {cell.computed.overallLevel ?? "—"}
+                          </td>
+                          <td className="px-2 py-1">{cell.remarks ?? ""}</td>
+                        </>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ))
       )}
@@ -516,48 +522,50 @@ function ExamSection({ data }: { data: Awaited<ReturnType<typeof loadExam>> }) {
 
   return (
     <Section title="Exams">
-      <table className="w-full border-collapse text-[12px]">
-        <thead>
-          <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
-            <th className="px-2 py-1 text-left font-medium">Subject</th>
-            {data.perRound.map(({ round }) => (
-              <th key={round.id} className="px-2 py-1 text-left font-medium">
-                {round.name}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.perRound[0]?.subjects.map((_, subjectIndex) => {
-            const subjectName = data.perRound[0].subjects[subjectIndex].subject.name;
-            return (
-              <tr key={subjectName} className="border-b border-neutral-200">
-                <td className="px-2 py-1 font-medium">{subjectName}</td>
-                {data.perRound.map(({ round, subjects }) => {
-                  const cell = subjects[subjectIndex];
-                  return (
-                    <td key={round.id} className="px-2 py-1">
-                      {cell.learnerScore === null ? (
-                        <span className="text-neutral-400 italic">not yet encoded</span>
-                      ) : cell.hps === null ? (
-                        <>
-                          {cell.learnerScore} —{" "}
-                          <span className="text-neutral-400">MPS not available</span>
-                        </>
-                      ) : (
-                        <>
-                          {cell.learnerScore}/{cell.hps} — class MPS{" "}
-                          {cell.classMps !== null ? `${cell.classMps.toFixed(0)}%` : "—"}
-                        </>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto print:overflow-visible">
+        <table className="w-full min-w-[560px] border-collapse text-[12px] print:min-w-0">
+          <thead>
+            <tr className="border-y border-neutral-300 bg-neutral-50 text-[10px] uppercase tracking-wide text-neutral-600">
+              <th className="px-2 py-1 text-left font-medium">Subject</th>
+              {data.perRound.map(({ round }) => (
+                <th key={round.id} className="px-2 py-1 text-left font-medium">
+                  {round.name}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.perRound[0]?.subjects.map((_, subjectIndex) => {
+              const subjectName = data.perRound[0].subjects[subjectIndex].subject.name;
+              return (
+                <tr key={subjectName} className="border-b border-neutral-200">
+                  <td className="px-2 py-1 font-medium">{subjectName}</td>
+                  {data.perRound.map(({ round, subjects }) => {
+                    const cell = subjects[subjectIndex];
+                    return (
+                      <td key={round.id} className="px-2 py-1">
+                        {cell.learnerScore === null ? (
+                          <span className="text-neutral-400 italic">not yet encoded</span>
+                        ) : cell.hps === null ? (
+                          <>
+                            {cell.learnerScore} —{" "}
+                            <span className="text-neutral-400">MPS not available</span>
+                          </>
+                        ) : (
+                          <>
+                            {cell.learnerScore}/{cell.hps} — class MPS{" "}
+                            {cell.classMps !== null ? `${cell.classMps.toFixed(0)}%` : "—"}
+                          </>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </Section>
   );
 }
