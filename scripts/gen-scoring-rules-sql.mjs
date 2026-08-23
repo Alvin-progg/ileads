@@ -29,10 +29,10 @@ process.stdout.write(`-- Scoring cut-offs (ticket #7).
 -- and the instrument total. Their per-task maxima are null, so per-task
 -- mastery is not available for them. Their proficiency level bands reuse
 -- Grade 3's percentage ladder by team decision (no G1/G2 DepEd workbook
--- defines one) rather than leaving levels unconfigured. RMA grades 4-6 are
--- absent entirely - a different domain-based instrument - and the loader
--- raises a clear error for them rather than scoring against a guessed
--- ladder.
+-- defines one) rather than leaving levels unconfigured. RMA grades 4-6 use a
+-- real DepEd domain-based instrument that hasn't been supplied yet, so they
+-- currently clone Grade 3's Task A-H shape as a placeholder (see the TODO in
+-- lib/scoring/instruments.ts) rather than blocking the feature entirely.
 
 insert into scoring_rules (tool, grade_level, version, rules) values
 ${rows}

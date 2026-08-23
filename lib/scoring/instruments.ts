@@ -253,8 +253,12 @@ export const CRLA_G3: CrlaRules = {
 // (`RMA_LEVELS` below) rather than leaving levels unconfigured, since the
 // bands are already expressed as a fraction of each grade's own total.
 //
-// Grades 4–6 use a different domain-based instrument entirely and are absent;
-// the loader raises a clear error for them.
+// Grades 4–6 use a different domain-based instrument entirely. The real
+// DepEd RMA2 G4-6 column list (content/cognitive domains + max points) and
+// its cut-off bands have not been supplied yet. TODO: once the official
+// sheet is available, replace RMA_G4/G5/G6 below with the real columns —
+// they currently just clone G3's Task A-H shape as a placeholder so the
+// feature (nav, grid, exports) works end-to-end in the meantime.
 
 /** Task letters with no stated maximum, for the grades that supply neither. */
 function lettersOnly(letters: string[]): RmaTask[] {
@@ -306,6 +310,12 @@ export const RMA_G3: RmaRules = {
   levels: RMA_LEVELS,
 };
 
+// PLACEHOLDER — cloned from RMA_G3's Task A-H shape, not the real DepEd G4-6
+// domain-based instrument. Swap out once the official column list arrives.
+export const RMA_G4: RmaRules = { ...RMA_G3, tasks: [...RMA_G3.tasks] };
+export const RMA_G5: RmaRules = { ...RMA_G3, tasks: [...RMA_G3.tasks] };
+export const RMA_G6: RmaRules = { ...RMA_G3, tasks: [...RMA_G3.tasks] };
+
 // ---------------------------------------------------------------------------
 // Phil-IRI (Oral Reading, G4-6)
 // ---------------------------------------------------------------------------
@@ -355,6 +365,9 @@ export const SEED_RULES = [
   { tool: "rma", grade_level: 1, version: "RMA2v2", rules: RMA_G1 },
   { tool: "rma", grade_level: 2, version: "RMA2v2", rules: RMA_G2 },
   { tool: "rma", grade_level: 3, version: "RMA2v2", rules: RMA_G3 },
+  { tool: "rma", grade_level: 4, version: "RMA2v2", rules: RMA_G4 },
+  { tool: "rma", grade_level: 5, version: "RMA2v2", rules: RMA_G5 },
+  { tool: "rma", grade_level: 6, version: "RMA2v2", rules: RMA_G6 },
   { tool: "philiri", grade_level: 4, version: "PhilIRIv1", rules: PHILIRI_G4 },
   { tool: "philiri", grade_level: 5, version: "PhilIRIv1", rules: PHILIRI_G5 },
   { tool: "philiri", grade_level: 6, version: "PhilIRIv1", rules: PHILIRI_G6 },
