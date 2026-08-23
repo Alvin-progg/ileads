@@ -1,7 +1,9 @@
+import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
 import { SCHOOL } from "@/lib/school";
 import { CRLA_GRADES, EXAM_GRADES, PHILIRI_GRADES, RMA_GRADES } from "@/lib/grades";
 import { Sidebar, type NavItem } from "./sidebar.tsx";
+import { GuidedTour } from "./tour/guided-tour.tsx";
 
 export default async function AuthenticatedLayout({
   children,
@@ -9,6 +11,20 @@ export default async function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const viewer = await getViewer();
+
+  // The tour's learner-profile step needs a concrete id to route to. Heads
+  // see this step too now, so this runs for both roles — a head's
+  // allowedGrades already covers every grade level.
+  const supabase = await createClient();
+  const { data: sampleLearner } = await supabase
+    .from("learners")
+    .select("id")
+    .eq("status", "enrolled")
+    .in("grade_level", viewer.allowedGrades)
+    .order("last_name")
+    .limit(1)
+    .maybeSingle();
+  const sampleLearnerId = sampleLearner?.id ?? null;
 
   const showsFor = (grades: number[]) =>
     grades.some((g) => viewer.allowedGrades.includes(g));
@@ -56,8 +72,16 @@ export default async function AuthenticatedLayout({
             {viewer.fullName} · {viewer.role}
           </p>
         </header>
-        <div className="flex-1 overflow-y-auto">{children}</div>
+        <div id="app-scroll-region" className="flex-1 overflow-y-auto">
+          {children}
+        </div>
       </div>
+      <GuidedTour
+        isHead={viewer.isHead}
+        allowedGrades={viewer.allowedGrades}
+        hasSeenTour={viewer.hasSeenTour}
+        sampleLearnerId={sampleLearnerId}
+      />
     </div>
   );
 }

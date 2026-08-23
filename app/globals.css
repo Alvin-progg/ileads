@@ -62,7 +62,27 @@ button:active:not(:disabled),
     margin: 10mm;
   }
 
+  /* The one-page role reference (app/(authenticated)/help/reference.tsx) is
+     prose, not a wide scoresheet — it prints portrait on its own named page. */
+  @page ref {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  .ref-sheet {
+    page: ref;
+  }
+
   .no-print {
+    display: none !important;
+  }
+
+  /* The tour must never end up on paper if someone prints mid-tour. */
+  .react-joyride__overlay,
+  .react-joyride__spotlight,
+  .react-joyride__floater,
+  .react-joyride__beacon,
+  .react-joyride__loader {
     display: none !important;
   }
 

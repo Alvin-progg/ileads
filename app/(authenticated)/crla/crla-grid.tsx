@@ -466,7 +466,7 @@ export function CrlaGrid({
               <th className="bg-emerald-50/60 px-2 py-2 font-medium">WPM</th>
               <th className="bg-emerald-50/60 px-2 py-2 font-medium">Fluency</th>
               <th className="bg-emerald-50/60 px-2 py-2 font-medium">Reading Profile</th>
-              <th className="px-3 py-2 text-left font-medium">Status</th>
+              <th className="px-3 py-2 text-left font-medium" data-tour="save-status">Status</th>
             </tr>
           </thead>
           <tbody>

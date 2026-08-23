@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutButton } from "./logout-button.tsx";
+import { TakeTourButton } from "./tour/take-tour-button.tsx";
 
 export type IconKey =
   | "dashboard"
@@ -105,13 +106,18 @@ function NavLinks({
   navItems,
   isActive,
   onNavigate,
+  anchors = false,
 }: {
   navItems: NavItem[];
   isActive: (href: string) => boolean;
   onNavigate: () => void;
+  anchors?: boolean;
 }) {
   return (
-    <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
+    <nav
+      className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2"
+      {...(anchors ? { "data-tour": "nav" } : {})}
+    >
       {navItems.map((item) => (
         <Link
           key={item.href}
@@ -144,6 +150,10 @@ function BottomSection({ onNavigate }: { onNavigate: () => void }) {
         <Icon name="help" />
         Help / User Guide
       </Link>
+      <TakeTourButton
+        onClick={onNavigate}
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[13px] font-medium text-neutral-600 hover:bg-neutral-100"
+      />
       <div className="px-3 pt-1">
         <LogoutButton />
       </div>
@@ -184,7 +194,7 @@ export function Sidebar({
       {/* Desktop sidebar — always visible, fixed width. */}
       <aside className="no-print sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-neutral-200 bg-white md:flex">
         <Brand />
-        <NavLinks navItems={navItems} isActive={isActive} onNavigate={() => {}} />
+        <NavLinks navItems={navItems} isActive={isActive} onNavigate={() => {}} anchors />
         <BottomSection onNavigate={() => {}} />
       </aside>
 

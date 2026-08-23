@@ -61,7 +61,7 @@ export default async function ReportsPage() {
         from the same numbers on the dashboard.
       </p>
 
-      <div className="mt-6 grid gap-4">
+      <div className="mt-6 grid gap-4" data-tour="exports">
         {TOOLS.map((t) => {
           const rounds = roundsByTool.get(t.tool) ?? [];
           return (

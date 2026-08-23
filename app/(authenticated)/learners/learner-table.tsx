@@ -103,7 +103,7 @@ export function LearnerTable({
         </select>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-neutral-100">
+      <div className="overflow-x-auto rounded-xl border border-neutral-100" data-tour="learner-table">
         <table className="w-full text-left text-[14px]">
           <thead className="bg-neutral-50 text-[12px] uppercase tracking-wide text-neutral-500">
             <tr>

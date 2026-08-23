@@ -348,7 +348,7 @@ export function PhiliriGrid({
               </th>
               <th className="px-2 py-2 font-medium">Set</th>
               <th className="px-2 py-2 font-medium">Remarks</th>
-              <th className="px-3 py-2 text-left font-medium">Status</th>
+              <th className="px-3 py-2 text-left font-medium" data-tour="save-status">Status</th>
             </tr>
           </thead>
           <tbody>

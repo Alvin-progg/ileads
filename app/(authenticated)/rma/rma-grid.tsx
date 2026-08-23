@@ -323,7 +323,7 @@ export function RmaGrid({
               <th className="bg-emerald-50/60 px-2 py-2 font-medium">
                 Proficiency Level
               </th>
-              <th className="px-3 py-2 text-left font-medium">Status</th>
+              <th className="px-3 py-2 text-left font-medium" data-tour="save-status">Status</th>
             </tr>
           </thead>
           <tbody>

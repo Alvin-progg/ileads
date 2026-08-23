@@ -19,6 +19,12 @@
       "skillPath": "skills/prototype/SKILL.md",
       "computedHash": "b1216a31a08fb02871f5b4ace7f31d0a1e2d9c86ddca74a37ed97d975f7bcaa2"
     },
+    "react-joyride": {
+      "source": "gilbarbara/react-joyride",
+      "sourceType": "github",
+      "skillPath": "skills/react-joyride/SKILL.md",
+      "computedHash": "824724c51142bb67d7dfc5aee3cbabb4a28195fe429cc00a19d0b062fa3c1f60"
+    },
     "redesign-existing-projects": {
       "source": "Leonxlnx/taste-skill",
       "sourceType": "github",

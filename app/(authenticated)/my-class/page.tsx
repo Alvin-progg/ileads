@@ -101,7 +101,7 @@ export default async function MyClassPage() {
         Grade{viewer.allowedGrades.length > 1 ? "s" : ""} {viewer.allowedGrades.join(", ")}
       </p>
 
-      <section className="mb-8">
+      <section className="mb-8" data-tour="quick-links">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
           Your Grade{viewer.allowedGrades.length > 1 ? "s" : ""}
         </h2>

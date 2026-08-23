@@ -9,7 +9,7 @@ export async function getViewer() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role")
+    .select("full_name, role, has_seen_tour")
     .eq("id", user!.id)
     .single();
 
@@ -30,5 +30,6 @@ export async function getViewer() {
     role: profile?.role ?? "teacher",
     isHead,
     allowedGrades,
+    hasSeenTour: profile?.has_seen_tour ?? false,
   };
 }

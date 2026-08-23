@@ -73,7 +73,10 @@ export default async function LearnerProfilePage({
   ]);
 
   return (
-    <main className="mx-auto max-w-[900px] p-6 print:max-w-none print:p-0">
+    <main
+      className="mx-auto max-w-[900px] p-6 print:max-w-none print:p-0"
+      data-tour="profile-body"
+    >
       <div className="no-print mb-5 flex items-center gap-4 text-[13px]">
         <Link href="/learners" className="text-emerald-700 hover:underline">
           ← Learners

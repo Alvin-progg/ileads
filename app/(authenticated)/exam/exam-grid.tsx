@@ -471,6 +471,9 @@ export function ExamGrid({
                               ? "Your session expired. Log in again — your unsaved work is safe."
                               : (scoreAutosave.lastError[`${learner.id}:${s.id}`] ?? undefined)
                           }
+                          {...(rowIndex === 0 && s.id === subjects[0]?.id
+                            ? { "data-tour": "save-status" }
+                            : {})}
                           className={`w-4 text-[11px] ${STATUS_STYLE[status]} ${
                             status === "failed" ? "cursor-pointer" : "cursor-default"
                           }`}

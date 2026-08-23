@@ -21,7 +21,7 @@ export default async function TeachersPage() {
       <p className="mb-6 text-sm text-neutral-500">
         Toggle the grade levels each teacher handles, then Save.
       </p>
-      <div>
+      <div data-tour="assignments">
         {teachers?.map((t) => (
           <TeacherGradeRow
             key={t.id}

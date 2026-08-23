@@ -23,7 +23,7 @@ export default async function AdminDashboardPage() {
     <main className="mx-auto max-w-[1400px] p-6">
       <h1 className="mb-6 text-2xl font-bold">School Head Dashboard</h1>
 
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3" data-tour="head-kpis">
         <StatTile label="Total Enrolled" value={data.totalEnrolled} tone="neutral" />
         <StatTile
           label="At-Risk Flags"
@@ -37,7 +37,7 @@ export default async function AdminDashboardPage() {
         />
       </div>
 
-      <section className="mb-8">
+      <section className="mb-8" data-tour="per-grade">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
           Per-Grade Breakdown
         </h2>
@@ -48,7 +48,7 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8" data-tour="head-charts">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
           Score Distributions
         </h2>
@@ -84,14 +84,14 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
 
-      <section className="mb-8">
+      <section className="mb-8" data-tour="at-risk">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
           At-Risk Learners
         </h2>
         <AtRiskTable rows={data.atRisk} />
       </section>
 
-      <section>
+      <section data-tour="encoding-progress">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
           Encoding Progress
         </h2>
