@@ -4,12 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useJoyride, STATUS, EVENTS } from "react-joyride";
-import {
-  firstEncodingEntry,
-  headTour,
-  teacherTour,
-  type TourStep,
-} from "@/lib/tour/steps.ts";
+import { headTour, teacherTour, type TourStep } from "@/lib/tour/steps.ts";
 import { useTourStore } from "@/lib/tour/store.ts";
 import { markTourSeen } from "./actions.ts";
 import { TourLoader } from "./tour-loader.tsx";
@@ -111,7 +106,7 @@ export function GuidedTour({
     () =>
       isHead
         ? headTour(allowedGrades, sampleLearnerId)
-        : teacherTour(firstEncodingEntry(allowedGrades), sampleLearnerId),
+        : teacherTour(allowedGrades, sampleLearnerId),
     [isHead, allowedGrades, sampleLearnerId]
   );
 

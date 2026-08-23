@@ -130,28 +130,56 @@ export default function LandingPage() {
             "#f6faf8",
         }}
       >
-        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
-          {/* Hero */}
-          <section className="fade-up text-center">
-            <Image
-              src="/images/Logo.png"
-              alt="I-LEADS — Paaralang Primarya ng Ligaya"
-              width={80}
-              height={80}
-              className="mx-auto mb-5"
-              priority
-            />
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">I-LEADS</h1>
-            <p className="mt-3 text-[15px] font-medium text-emerald-700">
-              Integrated Learner Evaluation and Data Management System
-            </p>
-            <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-neutral-600">
-              A centralized learner information and monitoring platform designed for
-              multigrade schools to organize, consolidate, retrieve, and monitor learner
-              data, including literacy, numeracy, and term examination results.
-            </p>
-          </section>
+        {/* Hero — full-bleed, fills the viewport at every breakpoint */}
+        <section className="fade-up relative isolate flex min-h-svh flex-col items-center justify-center overflow-hidden px-6 text-center">
+          <Image
+            src="/images/heroBG.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="-z-10 scale-110 object-cover blur-sm"
+          />
+          <Image
+            src="/images/Logo.png"
+            alt="I-LEADS — Paaralang Primarya ng Ligaya"
+            width={80}
+            height={80}
+            className="mx-auto mb-5"
+            priority
+          />
+          <h1
+            className="text-4xl font-bold tracking-tight sm:text-5xl"
+            style={{
+              textShadow:
+                "0 0 20px #fff, 0 0 20px #fff, 0 0 10px #fff, 0 0 10px #fff, 0 1px 2px #fff",
+            }}
+          >
+            I-LEADS
+          </h1>
+          <p
+            className="mt-3 text-[15px] font-semibold text-emerald-800"
+            style={{
+              textShadow:
+                "0 0 16px #fff, 0 0 16px #fff, 0 0 8px #fff, 0 0 8px #fff, 0 1px 2px #fff",
+            }}
+          >
+            Integrated Learner Evaluation and Data Management System
+          </p>
+          <p
+            className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-neutral-900"
+            style={{
+              textShadow:
+                "0 0 16px #fff, 0 0 16px #fff, 0 0 8px #fff, 0 0 8px #fff, 0 1px 2px #fff",
+            }}
+          >
+            A centralized learner information and monitoring platform designed for
+            multigrade schools to organize, consolidate, retrieve, and monitor learner
+            data, including literacy, numeracy, and term examination results.
+          </p>
+        </section>
 
+        <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
           {/* Learner Monitoring Status legend */}
           <section className="mt-20">
             <h2 className="text-center text-[13px] font-bold uppercase tracking-wide text-neutral-500">

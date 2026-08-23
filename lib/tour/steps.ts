@@ -21,19 +21,11 @@ const INSTRUMENTS: { grades: number[]; href: string; label: string }[] = [
 ];
 
 /**
- * Same instrument-priority logic as the sidebar's `showsFor`
- * (app/(authenticated)/layout.tsx) — kept in sync by construction so the
- * tour never targets a nav item this teacher can't see. A teacher only ever
- * has one instrument set worth walking through.
- */
-export function firstEncodingEntry(allowedGrades: number[]): EncodingEntry | null {
-  const match = INSTRUMENTS.find((i) => i.grades.some((g) => allowedGrades.includes(g)));
-  return match ? { href: match.href, label: match.label } : null;
-}
-
-/**
- * Every instrument the viewer has grades for — a head has all four, since
- * their allowedGrades covers every grade level.
+ * Every instrument the viewer has grades for — kept in sync with the
+ * sidebar's `showsFor` (app/(authenticated)/layout.tsx) by construction, so
+ * the tour never targets a nav item this viewer can't see. A head has all
+ * four, since their allowedGrades covers every grade level; a teacher gets
+ * whichever subset her assigned grades pull in.
  */
 export function allEncodingEntries(allowedGrades: number[]): EncodingEntry[] {
   return INSTRUMENTS.filter((i) => i.grades.some((g) => allowedGrades.includes(g))).map(
@@ -88,9 +80,11 @@ function learnerProfileSteps(sampleLearnerId: string | null): TourStep[] {
 }
 
 export function teacherTour(
-  entry: EncodingEntry | null,
+  allowedGrades: number[],
   sampleLearnerId: string | null
 ): TourStep[] {
+  const entries = allEncodingEntries(allowedGrades);
+
   return [
     {
       id: "nav",
@@ -116,12 +110,12 @@ export function teacherTour(
       body: "Here's your class list.",
       placement: "bottom",
     },
-    ...(entry
-      ? gridStepPair(
-          entry,
-          "Pick a round, then type scores here — the level computes automatically. Try it: type into the row below."
-        )
-      : []),
+    ...entries.flatMap((entry) =>
+      gridStepPair(
+        entry,
+        "Pick a round, then type scores here — the level computes automatically. Try it: type into the row below."
+      )
+    ),
     ...learnerProfileSteps(sampleLearnerId),
   ];
 }

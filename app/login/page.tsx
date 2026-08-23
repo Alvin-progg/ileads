@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { LoginForm } from "./login-form";
 
 export const metadata = { title: "Sign in — I-LEADS" };
@@ -14,12 +15,14 @@ export default function LoginPage() {
       }}
     >
       <div className="fade-up w-full max-w-[380px] rounded-2xl border border-neutral-900/5 bg-white px-8 pt-8 pb-9 shadow-[0_12px_32px_rgba(6,78,59,0.10),0_2px_8px_rgba(6,78,59,0.05)]">
-        <div
-          aria-hidden="true"
-          className="mb-4 grid h-10 w-10 place-items-center rounded-[10px] bg-emerald-600 font-bold text-white"
-        >
-          IL
-        </div>
+        <Image
+          src="/images/Logo.png"
+          alt="I-LEADS logo"
+          width={40}
+          height={40}
+          className="mb-4"
+          priority
+        />
         <h1 className="text-[21px] font-semibold">Sign in to I-LEADS</h1>
         <p className="mb-7 text-[13px] text-neutral-500">
           Ligaya Primary School · learner records

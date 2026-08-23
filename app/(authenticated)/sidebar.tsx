@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutButton } from "./logout-button.tsx";
@@ -91,12 +92,7 @@ function Icon({ name }: { name: IconKey }) {
 function Brand() {
   return (
     <div className="flex h-14 shrink-0 items-center gap-2 px-4">
-      <div
-        aria-hidden="true"
-        className="grid h-8 w-8 place-items-center rounded-[10px] bg-emerald-600 text-[12px] font-bold text-white"
-      >
-        IL
-      </div>
+      <Image src="/images/Logo.png" alt="I-LEADS logo" width={32} height={32} />
       <span className="text-[15px] font-semibold">I-LEADS</span>
     </div>
   );

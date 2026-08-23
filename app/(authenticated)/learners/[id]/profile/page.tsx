@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -87,6 +88,13 @@ export default async function LearnerProfilePage({
       </div>
 
       <header className="mb-6 break-inside-avoid border-b border-neutral-300 pb-3">
+        <Image
+          src="/images/Logo.png"
+          alt="I-LEADS logo"
+          width={48}
+          height={48}
+          className="mx-auto mb-2"
+        />
         <p className="text-center text-[11px] uppercase tracking-widest text-neutral-500">
           Learner Progress Profile
         </p>
