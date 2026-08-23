@@ -11,7 +11,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!user) {
-    if (pathname === "/login") return response;
+    if (pathname === "/login" || pathname === "/") return response;
     const loginUrl = new URL("/login", request.url);
     // Carries the teacher back to the exact page they were on (e.g. a grid
     // with unsaved rows) once they sign back in, instead of the role home.

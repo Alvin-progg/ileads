@@ -3,6 +3,7 @@
 // grade's worth of data, whichever page hands it one.
 import type { GradeCardData } from "@/lib/dashboard/build-dashboard.ts";
 import { EXAM_MASTERY_THRESHOLD } from "../dashboard-colors.ts";
+import { TIER_META, tierForLevel, type TierInstrument } from "@/lib/status-tiers";
 
 export function StatTile({
   label,
@@ -30,29 +31,25 @@ export function StatTile({
 }
 
 /**
- * `dangerLabel` highlights the instrument's lowest band in red when it has
- * learners in it — the same visual language as the At-Risk table — so the
- * flag is visible here without having to cross-reference that table.
+ * Colors each band pill by its Learner Monitoring Status tier (see
+ * lib/status-tiers.ts) — the same vocabulary as the monitoring table and the
+ * landing page legend, so the flag is visible here without having to
+ * cross-reference that table. A band with nobody in it stays neutral.
  */
 export function LevelTags({
   rows,
-  dangerLabel,
+  instrument,
 }: {
   rows: { label: string; total: number }[];
-  dangerLabel?: string | null;
+  instrument: TierInstrument;
 }) {
   return (
     <div className="flex flex-wrap gap-1">
       {rows.map((r) => {
-        const isDanger = dangerLabel !== null && dangerLabel !== undefined && r.label === dangerLabel && r.total > 0;
+        const tier = r.total > 0 ? tierForLevel(instrument, r.label) : null;
+        const pill = tier ? TIER_META[tier].pill : "bg-neutral-100 text-neutral-700";
         return (
-          <span
-            key={r.label}
-            className={
-              "rounded-full px-2 py-0.5 text-[11px] font-medium " +
-              (isDanger ? "bg-red-50 text-red-700" : "bg-neutral-100 text-neutral-700")
-            }
-          >
+          <span key={r.label} className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${pill}`}>
             {r.label}: <span className="tabular-nums">{r.total}</span>
           </span>
         );
@@ -84,10 +81,10 @@ export function GradeCard({ card }: { card: GradeCardData }) {
             <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
               CRLA
             </p>
-            {card.crlaCard.map(({ language, summary, worstLabel }) => (
+            {card.crlaCard.map(({ language, summary }) => (
               <div key={language} className="mt-1">
                 <p className="text-[12px] font-medium text-neutral-600">{language}</p>
-                <LevelTags rows={summary.levels} dangerLabel={worstLabel} />
+                <LevelTags rows={summary.levels} instrument="CRLA" />
               </div>
             ))}
           </div>
@@ -99,7 +96,7 @@ export function GradeCard({ card }: { card: GradeCardData }) {
               RMA
             </p>
             {card.rmaCard.configured ? (
-              <LevelTags rows={card.rmaCard.summary.levels} dangerLabel={card.rmaCard.worstLabel} />
+              <LevelTags rows={card.rmaCard.summary.levels} instrument="RMA" />
             ) : (
               <p className="text-[12px] text-amber-700">
                 Levels not configured for this grade ({card.rmaCard.summary.assessed} scored).
@@ -116,7 +113,7 @@ export function GradeCard({ card }: { card: GradeCardData }) {
             {card.philiriCard.map(({ language, summary }) => (
               <div key={language} className="mt-1">
                 <p className="text-[12px] font-medium text-neutral-600">{language}</p>
-                <LevelTags rows={summary.overallLevels} dangerLabel="Frustration" />
+                <LevelTags rows={summary.overallLevels} instrument="Phil-IRI" />
               </div>
             ))}
           </div>

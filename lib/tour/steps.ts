@@ -146,7 +146,7 @@ export function headTour(
       route: "/admin",
       target: '[data-tour="head-kpis"]',
       title: "School-wide snapshot",
-      body: "Enrollment, at-risk flags, and incomplete encoding rounds — at a glance.",
+      body: "Enrollment, learners needing support, and incomplete encoding rounds — at a glance.",
       placement: "bottom",
     },
     {
@@ -169,8 +169,8 @@ export function headTour(
       id: "at-risk",
       route: "/admin",
       target: '[data-tour="at-risk"]',
-      title: "At-risk learners",
-      body: "Learners flagged across any instrument, school-wide.",
+      title: "Learner monitoring status",
+      body: "Every learner not on track, across any instrument, school-wide — On Track, Needs Monitoring, Needs Intervention, or Critical.",
       placement: "top",
     },
     {

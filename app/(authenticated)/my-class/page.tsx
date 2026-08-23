@@ -5,10 +5,11 @@ import { CRLA_GRADES, PHILIRI_GRADES, RMA_GRADES } from "@/lib/grades";
 import { LANGUAGE_NAMES } from "@/lib/languages";
 import { buildDashboard, type CurrentRound, type GradeCardData } from "@/lib/dashboard/build-dashboard.ts";
 import { GradeCard } from "../dashboard/grade-card.tsx";
-import { AtRiskTable } from "../dashboard/at-risk-table.tsx";
+import { MonitoringTable } from "../dashboard/monitoring-table.tsx";
 import { EncodingProgressChart, StatusLegend } from "../encoding-progress-chart.tsx";
 import { GroupedLevelChart } from "../admin/grouped-level-chart.tsx";
 import { ExamMpsChart } from "../exam-mps-chart.tsx";
+import { TIER_ORDER, TIER_META } from "@/lib/status-tiers";
 
 export const metadata = { title: "My Class — I-LEADS" };
 
@@ -159,9 +160,22 @@ export default async function MyClassPage() {
 
       <section className="mb-8">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
-          At-Risk Learners
+          Learner Monitoring Status
         </h2>
-        <AtRiskTable rows={data.atRisk} />
+        <div className="mb-3 flex flex-wrap gap-2">
+          {TIER_ORDER.map((tier) => {
+            const meta = TIER_META[tier];
+            return (
+              <span
+                key={tier}
+                className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${meta.pill}`}
+              >
+                {meta.label}: <span className="tabular-nums">{data.monitoringTierCounts[tier]}</span>
+              </span>
+            );
+          })}
+        </div>
+        <MonitoringTable rows={data.monitoring} />
       </section>
 
       <section>

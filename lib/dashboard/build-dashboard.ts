@@ -44,6 +44,7 @@ import {
 } from "./current-status.ts";
 import type { TrackerTableData } from "@/app/(authenticated)/encoding-progress-chart.tsx";
 import type { LevelGroup } from "@/app/(authenticated)/admin/grouped-level-chart.tsx";
+import { TIER_ORDER, tierForLevel, type Tier } from "@/lib/status-tiers";
 
 type Round = { id: number; name: string; sequence: number };
 type Learner = {
@@ -55,13 +56,14 @@ type Learner = {
   grade_level: number;
 };
 
-export type AtRiskRow = {
+export type MonitoringRow = {
   learnerId: string;
   name: string;
   grade: number;
   instrument: string;
   language: string | null;
   level: string;
+  tier: Tier;
 };
 
 export type StatusCounts = { enrolled: number; transferred: number; dropped: number };
@@ -76,9 +78,9 @@ export type GradeCardData = {
   enrolled: number;
   teachers: string[];
   statusCounts: StatusCounts;
-  crlaCard: { language: string; summary: ClassSummary; worstLabel: string }[] | null;
+  crlaCard: { language: string; summary: ClassSummary }[] | null;
   crlaCurrentRound: CurrentRound | null;
-  rmaCard: { summary: RmaSummary; configured: boolean; worstLabel: string | null } | null;
+  rmaCard: { summary: RmaSummary; configured: boolean } | null;
   rmaCurrentRound: CurrentRound | null;
   philiriCard: { language: string; summary: PhiliriSummary }[] | null;
   philiriCurrentRound: CurrentRound | null;
@@ -89,7 +91,8 @@ export type GradeCardData = {
 export type DashboardData = {
   totalEnrolled: number;
   gradeCards: GradeCardData[];
-  atRisk: AtRiskRow[];
+  monitoring: MonitoringRow[];
+  monitoringTierCounts: Record<Tier, number>;
   trackerCellCounts: { complete: number; incomplete: number };
   crlaCharts: { language: string; levels: string[]; groups: LevelGroup[] }[];
   rmaLevels: string[];
@@ -253,7 +256,7 @@ export async function buildDashboard(
     }),
   ]);
 
-  const atRisk: AtRiskRow[] = [];
+  const monitoring: MonitoringRow[] = [];
   const trackerCellCounts = { complete: 0, incomplete: 0 };
 
   function addTrackerCell(enrolled: number, encoded: number) {
@@ -263,7 +266,7 @@ export async function buildDashboard(
   }
 
   // ---------------------------------------------------------------------
-  // Per-grade cards + at-risk collection
+  // Per-grade cards + learner monitoring status collection
   // ---------------------------------------------------------------------
 
   const gradeCards: GradeCardData[] = scope.map((grade) => {
@@ -271,7 +274,7 @@ export async function buildDashboard(
     const enrolled = gradeLearners.length;
 
     // --- CRLA ---
-    let crlaCard: { language: string; summary: ClassSummary; worstLabel: string }[] | null = null;
+    let crlaCard: { language: string; summary: ClassSummary }[] | null = null;
     let crlaCurrentRound: CurrentRound | null = null;
 
     if (crlaGrades.includes(grade)) {
@@ -286,29 +289,29 @@ export async function buildDashboard(
             rules,
             language
           );
-          const worstLabel = rules.languages[language].part1.levels[0]?.label ?? "";
           for (const e of entries) {
-            if (e.readingLevel !== null && e.readingLevel === worstLabel) {
+            const tier = tierForLevel("CRLA", e.readingLevel);
+            if (tier !== null && tier !== "on-track") {
               const learner = learnerById.get(e.learnerId)!;
-              atRisk.push({
+              monitoring.push({
                 learnerId: e.learnerId,
                 name: `${learner.last_name}, ${learner.first_name}`,
                 grade,
                 instrument: "CRLA",
                 language,
-                level: worstLabel,
+                level: e.readingLevel!,
+                tier,
               });
             }
           }
-          return { language, summary: summarise(entries, rules, language), worstLabel };
+          return { language, summary: summarise(entries, rules, language) };
         });
         crlaCurrentRound = pickCurrentRound(crlaRowsByGrade.get(grade) ?? [], crlaRounds);
       }
     }
 
     // --- RMA ---
-    let rmaCard: { summary: RmaSummary; configured: boolean; worstLabel: string | null } | null =
-      null;
+    let rmaCard: { summary: RmaSummary; configured: boolean } | null = null;
     let rmaCurrentRound: CurrentRound | null = null;
 
     if (rmaGrades.includes(grade)) {
@@ -321,23 +324,24 @@ export async function buildDashboard(
           rules
         );
         const configured = rules.levels.length > 0;
-        const worstLabel = configured ? rules.levels[0].label : null;
-        if (configured && worstLabel) {
+        if (configured) {
           for (const e of entries) {
-            if (e.proficiencyLevel !== null && e.proficiencyLevel === worstLabel) {
+            const tier = tierForLevel("RMA", e.proficiencyLevel);
+            if (tier !== null && tier !== "on-track") {
               const learner = learnerById.get(e.learnerId)!;
-              atRisk.push({
+              monitoring.push({
                 learnerId: e.learnerId,
                 name: `${learner.last_name}, ${learner.first_name}`,
                 grade,
                 instrument: "RMA",
                 language: null,
-                level: worstLabel,
+                level: e.proficiencyLevel!,
+                tier,
               });
             }
           }
         }
-        rmaCard = { summary: summariseRma(entries, rules), configured, worstLabel };
+        rmaCard = { summary: summariseRma(entries, rules), configured };
         rmaCurrentRound = pickCurrentRound(
           (rmaRowsByGrade.get(grade) ?? []).filter(hasAnyRmaScore),
           rmaRounds
@@ -362,15 +366,17 @@ export async function buildDashboard(
             language
           );
           for (const e of entries) {
-            if (e.overallLevel === "Frustration") {
+            const tier = tierForLevel("Phil-IRI", e.overallLevel);
+            if (tier !== null && tier !== "on-track") {
               const learner = learnerById.get(e.learnerId)!;
-              atRisk.push({
+              monitoring.push({
                 learnerId: e.learnerId,
                 name: `${learner.last_name}, ${learner.first_name}`,
                 grade,
                 instrument: "Phil-IRI",
                 language,
-                level: "Frustration",
+                level: e.overallLevel!,
+                tier,
               });
             }
           }
@@ -631,12 +637,22 @@ export async function buildDashboard(
     }),
   };
 
-  atRisk.sort((a, b) => a.grade - b.grade || a.instrument.localeCompare(b.instrument));
+  monitoring.sort(
+    (a, b) =>
+      TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier) ||
+      a.grade - b.grade ||
+      a.instrument.localeCompare(b.instrument)
+  );
+
+  const monitoringTierCounts = Object.fromEntries(
+    TIER_ORDER.map((tier) => [tier, monitoring.filter((row) => row.tier === tier).length])
+  ) as Record<Tier, number>;
 
   return {
     totalEnrolled: learners.length,
     gradeCards,
-    atRisk,
+    monitoring,
+    monitoringTierCounts,
     trackerCellCounts,
     crlaCharts,
     rmaLevels,

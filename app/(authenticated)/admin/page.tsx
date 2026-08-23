@@ -5,10 +5,11 @@ import { GRADE_LEVELS } from "@/lib/grades";
 import { LANGUAGE_NAMES } from "@/lib/languages";
 import { buildDashboard } from "@/lib/dashboard/build-dashboard.ts";
 import { GradeCard, StatTile } from "../dashboard/grade-card.tsx";
-import { AtRiskTable } from "../dashboard/at-risk-table.tsx";
+import { MonitoringTable } from "../dashboard/monitoring-table.tsx";
 import { EncodingProgressChart, StatusLegend } from "../encoding-progress-chart.tsx";
 import { GroupedLevelChart } from "./grouped-level-chart.tsx";
 import { ExamMpsChart } from "../exam-mps-chart.tsx";
+import { TIER_ORDER, TIER_META } from "@/lib/status-tiers";
 
 export const metadata = { title: "School Head Dashboard — I-LEADS" };
 
@@ -26,9 +27,16 @@ export default async function AdminDashboardPage() {
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3" data-tour="head-kpis">
         <StatTile label="Total Enrolled" value={data.totalEnrolled} tone="neutral" />
         <StatTile
-          label="At-Risk Flags"
-          value={data.atRisk.length}
-          tone={data.atRisk.length > 0 ? "warn" : "good"}
+          label="Flags Needing Support"
+          value={
+            data.monitoringTierCounts["needs-intervention"] + data.monitoringTierCounts.critical
+          }
+          tone={
+            data.monitoringTierCounts["needs-intervention"] + data.monitoringTierCounts.critical >
+            0
+              ? "warn"
+              : "good"
+          }
         />
         <StatTile
           label="Incomplete Encoding Rounds"
@@ -86,9 +94,22 @@ export default async function AdminDashboardPage() {
 
       <section className="mb-8" data-tour="at-risk">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
-          At-Risk Learners
+          Learner Monitoring Status
         </h2>
-        <AtRiskTable rows={data.atRisk} />
+        <div className="mb-3 flex flex-wrap gap-2">
+          {TIER_ORDER.map((tier) => {
+            const meta = TIER_META[tier];
+            return (
+              <span
+                key={tier}
+                className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${meta.pill}`}
+              >
+                {meta.label}: <span className="tabular-nums">{data.monitoringTierCounts[tier]}</span>
+              </span>
+            );
+          })}
+        </div>
+        <MonitoringTable rows={data.monitoring} />
       </section>
 
       <section data-tour="encoding-progress">

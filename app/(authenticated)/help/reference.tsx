@@ -93,9 +93,10 @@ function HeadReference() {
 
       <ol className="mb-4 list-decimal space-y-2 pl-5 text-[13px]">
         <li>
-          <strong>School Head Dashboard</strong> — enrollment, at-risk flags, and
-          incomplete encoding rounds at a glance, plus per-grade score
-          distributions and an at-risk learner list.
+          <strong>School Head Dashboard</strong> — enrollment, learners needing
+          support, and incomplete encoding rounds at a glance, plus per-grade score
+          distributions and a Learner Monitoring Status list (On Track / Needs
+          Monitoring / Needs Intervention / Critical).
         </li>
         <li>
           <strong>Teacher Assignments</strong> — assign each teacher to the grade
