@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useJoyride, STATUS } from "react-joyride";
+import { useJoyride, STATUS, EVENTS } from "react-joyride";
 import {
   firstEncodingEntry,
   headTour,
@@ -17,17 +17,21 @@ import { TourBeacon } from "./tour-beacon.tsx";
 
 const MOBILE_GATE_QUERY = "(min-width: 768px)";
 
-/** Polls a predicate on the next-paint cadence rather than a fixed interval,
- * so the wait resolves as soon as App Router's client navigation lands. */
+/**
+ * Polls a predicate every 30ms until it passes or timeoutMs elapses.
+ * setTimeout rather than requestAnimationFrame: rAF callbacks simply don't
+ * run while a tab is backgrounded, which would make both the poll *and its
+ * own timeout* hang indefinitely if the user tabbed away mid-navigation.
+ */
 function waitFor(predicate: () => boolean, timeoutMs: number): Promise<void> {
   return new Promise((resolve) => {
-    const start = performance.now();
+    const start = Date.now();
     function tick() {
-      if (predicate() || performance.now() - start > timeoutMs) {
+      if (predicate() || Date.now() - start > timeoutMs) {
         resolve();
         return;
       }
-      requestAnimationFrame(tick);
+      setTimeout(tick, 30);
     }
     tick();
   });
@@ -38,15 +42,52 @@ function canRunTour(): boolean {
 }
 
 /**
- * The app's own content region (see #app-scroll-region in
- * app/(authenticated)/layout.tsx) scrolls independently of the window.
- * Next.js only resets *window* scroll on navigation, so without this a step
- * reached right after a deep scroll on the previous page (e.g. the bottom of
- * a long dashboard) opens still scrolled to that old offset — Joyride then
- * computes its scroll-into-view from the wrong starting position.
+ * #app-scroll-region (app/(authenticated)/layout.tsx) carries an
+ * overflow-y-auto class, but its flex-1 parent has no bounded height, so it
+ * grows to fit its content instead of clipping it — it never actually
+ * develops internal overflow. The page really scrolls at the document level.
+ * Joyride's own scroll-into-view picks the *nearest ancestor with an
+ * overflow-auto style* as the "scroll parent" regardless of whether it
+ * currently overflows — finds that div, sees scrollHeight === clientHeight,
+ * concludes there's nothing to scroll, and silently does nothing. That's
+ * invisible for a target near the top of a page (nothing needed scrolling
+ * anyway) and total for one near the bottom of a long one (the card renders
+ * thousands of pixels below the viewport). `skipScroll` below turns
+ * Joyride's own attempt off entirely so this can't fight with our own scroll.
  */
-function resetScrollRegion() {
-  document.getElementById("app-scroll-region")?.scrollTo({ top: 0, behavior: "instant" });
+function scrollTargetIntoView(target: string) {
+  document.querySelector(target)?.scrollIntoView({ block: "center", behavior: "instant" });
+}
+
+/**
+ * Centering the *target* doesn't guarantee the tooltip *card* — anchored
+ * beside it, and taller for 'top'/'bottom' placements — ends up fully within
+ * the viewport too. Once the tooltip has actually rendered (EVENTS.TOOLTIP,
+ * after positioning has settled, so this can't race it), nudge the real
+ * document scroll by however much of the card is clipped top or bottom.
+ */
+async function ensureTooltipFullyVisible() {
+  // A brief settle delay for the DOM/layout to catch up with the event.
+  // setTimeout rather than requestAnimationFrame: rAF callbacks don't run at
+  // all while a tab is backgrounded (e.g. the user alt-tabbed away exactly
+  // when clicking Next), which would leave this hung indefinitely.
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  const floater = document.querySelector(".react-joyride__floater") as HTMLElement | null;
+  if (!floater) return;
+
+  const rect = floater.getBoundingClientRect();
+  const margin = 16;
+
+  // instant, not smooth: a smooth scroll only animates via the same
+  // compositor frame loop requestAnimationFrame relies on, so it can stall
+  // the same way in a backgrounded tab. scrollTargetIntoView above already
+  // used instant for the same reason.
+  if (rect.top < margin) {
+    window.scrollBy({ top: rect.top - margin, behavior: "instant" });
+  } else if (rect.bottom > window.innerHeight - margin) {
+    window.scrollBy({ top: rect.bottom - (window.innerHeight - margin), behavior: "instant" });
+  }
 }
 
 export function GuidedTour({
@@ -90,8 +131,8 @@ export function GuidedTour({
             // Lets the new route's RSC payload paint before the tour starts
             // probing for the step's target.
             await new Promise((resolve) => setTimeout(resolve, 60));
-            resetScrollRegion();
           }
+          scrollTargetIntoView(s.target);
         },
       })),
     [tourSteps, router]
@@ -101,7 +142,6 @@ export function GuidedTour({
     continuous: true,
     run,
     steps,
-    scrollToFirstStep: true,
     loaderComponent: TourLoader,
     beaconComponent: TourBeacon,
     options: {
@@ -110,8 +150,15 @@ export function GuidedTour({
       targetWaitTimeout: 5000,
       beforeTimeout: 9000,
       primaryColor: "#059669",
+      // Joyride's own scroll-into-view misdetects #app-scroll-region as the
+      // scroll parent (see scrollTargetIntoView above) and no-ops on deep
+      // targets. We scroll ourselves in `before` instead.
+      skipScroll: true,
     },
     onEvent: (data) => {
+      if (data.type === EVENTS.TOOLTIP) {
+        void ensureTooltipFullyVisible();
+      }
       if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
         setRun(false);
         if (!markedRef.current) {
