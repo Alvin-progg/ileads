@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { gradeLabel } from "@/lib/grades";
+import { gradeHeading, gradeLabel } from "@/lib/grades";
 import { archiveLearner, restoreLearner } from "./actions";
 
 type Learner = {
@@ -87,7 +87,7 @@ export function LearnerTable({
           <option value="all">All grades</option>
           {allowedGrades.map((g) => (
             <option key={g} value={g}>
-              Grade {gradeLabel(g)}
+              {gradeHeading(g)}
             </option>
           ))}
         </select>

@@ -24,9 +24,13 @@ const supabase = createClient(url, serviceKey, {
 
 const PASSWORD = "password123";
 
-// grade_level: 1 … 6. Multigrade: 4 teachers cover Grades 1–6.
+// grade_level: 0 = Kindergarten, 1 … 6 = Grades 1–6. Multigrade: 4 teachers
+// cover Grades 1–6, plus a Kinder teacher. is_special (the head-applied
+// "special teacher" label) is deliberately not set here — it is set through
+// the teacher admin UI.
 const users = [
   { email: "head@example.com", full_name: "Maria Santos", role: "head", grades: [] },
+  { email: "teacher0@example.com", full_name: "Rosa Lim", role: "teacher", grades: [0] },
   { email: "teacher1@example.com", full_name: "Ana Reyes", role: "teacher", grades: [1] },
   { email: "teacher2@example.com", full_name: "Jose Cruz", role: "teacher", grades: [2, 3] },
   { email: "teacher3@example.com", full_name: "Liza Bautista", role: "teacher", grades: [4, 5] },

@@ -27,7 +27,9 @@ const SUBJECT_SHEETS: Record<string, string> = {
 const QUARTER_HEADER_ROW: Record<string, number> = { Q1: 5, Q2: 17, Q3: 29, Q4: 41 };
 
 /** Within a quarter block, Grade N's data row is header+3+N (grades 1-6 sit
- * at header+4 .. header+9). */
+ * at header+4 .. header+9). The template has no Kindergarten row, and grade 0
+ * would land on header+3, inside the header block — safe because EXAM_GRADES
+ * never contains 0 (see lib/grades.ts) and the only caller loops over it. */
 function dataRow(headerRow: number, grade: number): number {
   return headerRow + 3 + grade;
 }

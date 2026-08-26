@@ -167,7 +167,7 @@ export default function LandingPage() {
             Integrated Learner Evaluation and Data Management System
           </p>
           <p
-            className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-neutral-900"
+            className="mx-auto mt-5 max-w-2xl text-[25px] leading-relaxed text-neutral-900"
             style={{
               textShadow:
                 "0 0 16px #fff, 0 0 16px #fff, 0 0 8px #fff, 0 0 8px #fff, 0 1px 2px #fff",
@@ -225,7 +225,7 @@ export default function LandingPage() {
 
           {/* Closing description + CTA */}
           <section className="mt-20 border-t border-neutral-200 pt-14 text-center">
-            <p className="mx-auto max-w-2xl text-[15px] leading-relaxed text-neutral-600">
+            <p className="mx-auto max-w-2xl text-[25px] leading-relaxed text-neutral-600">
               I-LEADS helps teachers and school administrators keep every learner&apos;s
               reading, numeracy, and examination records in one place — replacing
               scattered spreadsheets with a single source that computes levels

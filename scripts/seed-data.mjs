@@ -90,9 +90,10 @@ for (let grade = 1; grade <= 6; grade++) {
 }
 
 // ---------------------------------------------------------------------
-// learners — 10 per grade 1-6, deterministic (no Math.random, so a
+// learners — 10 per grade K-6, deterministic (no Math.random, so a
 // second run produces identical rows). Fake 12-digit LRN scheme:
-// "9" + grade digit (1-6) + 2-digit sequence + 8 zero-pad digits.
+// "9" + grade digit (0-6, 0 = Kindergarten) + 2-digit sequence + 8
+// zero-pad digits.
 // ---------------------------------------------------------------------
 const SURNAMES = [
   "Santos", "Reyes", "Cruz", "Bautista", "Garcia", "Mendoza", "Torres",
@@ -123,7 +124,10 @@ function birthdateFor(grade, seq) {
 }
 
 const LEARNERS = [];
-for (let grade = 1; grade <= 6; grade++) {
+// Starts at 0: Kindergarten is roster-only, so it gets learners but NOT
+// learning areas (the LEARNING_AREAS loop above stays at 1-6, and the
+// learning_areas CHECK still rejects grade 0).
+for (let grade = 0; grade <= 6; grade++) {
   for (let seq = 0; seq < 10; seq++) {
     const isFemale = seq % 2 === 0;
     const surname = SURNAMES[(grade * 3 + seq) % SURNAMES.length];

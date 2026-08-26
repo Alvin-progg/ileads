@@ -20,6 +20,7 @@ export type CreateTeacherInput = {
   lastName: string;
   email: string;
   password: string;
+  isSpecial: boolean;
 };
 
 /**
@@ -55,7 +56,7 @@ export async function createTeacher(input: CreateTeacherInput) {
   }
 
   const admin = createAdminClient();
-  const { error } = await admin.auth.admin.createUser({
+  const { data, error } = await admin.auth.admin.createUser({
     email,
     password: input.password,
     email_confirm: true,
@@ -69,7 +70,51 @@ export async function createTeacher(input: CreateTeacherInput) {
     return { error: friendlyError(error) };
   }
 
+  // profiles.is_special is set here rather than through raw_user_meta_data +
+  // handle_new_user(): that trigger is on the critical path for every auth
+  // user in the system, and this is a display label with a column default —
+  // not worth the blast radius. The trigger has already committed the
+  // profiles row by the time createUser() returns, and the head's own client
+  // can update it ("head full access" on profiles), so no service-role write
+  // and no RPC — same two-step shape as setTeacherActive() below.
+  if (input.isSpecial && data?.user?.id) {
+    const supabase = await createClient();
+    const { error: flagError } = await supabase
+      .from("profiles")
+      .update({ is_special: true })
+      .eq("id", data.user.id);
+
+    // Says "added" on purpose: the account exists, so a retry would only hit
+    // "already exists". The head fixes the label with the row toggle.
+    if (flagError) {
+      return {
+        error: `Teacher added, but the special-teacher label didn't save: ${friendlyError(flagError)}`,
+      };
+    }
+  }
+
   return { error: null };
+}
+
+/**
+ * "Special teacher" = the Kindergarten teacher. Label only — it grants no
+ * access; Kinder access comes from a teacher_assignments row at grade_level
+ * 0. Editable after creation because the only other repair for a mistyped
+ * checkbox is deleting the auth user, which the app cannot do.
+ */
+export async function setTeacherSpecial(teacherId: string, isSpecial: boolean) {
+  const viewer = await getViewer();
+  if (!viewer.isHead) {
+    return { error: "You don't have permission to do that." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_special: isSpecial })
+    .eq("id", teacherId);
+
+  return { error: error ? friendlyError(error) : null };
 }
 
 /**

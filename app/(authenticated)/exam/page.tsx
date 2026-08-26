@@ -23,8 +23,8 @@ export default async function ExamPage({
     return (
       <Shell grade={null}>
         <p className="text-neutral-600">
-          You are not assigned to any grade, so there are no exam scores for
-          you to encode here.
+          You are not assigned to any grade with an exam module (Grades 1–6),
+          so there are no exam scores for you to encode here.
         </p>
       </Shell>
     );

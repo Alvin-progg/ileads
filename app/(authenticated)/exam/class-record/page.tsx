@@ -32,8 +32,8 @@ export default async function ExamClassRecordPage({
     return (
       <Shell>
         <p className="text-neutral-600">
-          You are not assigned to any grade, so there is no exam record to show
-          here.
+          You are not assigned to any grade with an exam module (Grades 1–6),
+          so there is no exam record to show here.
         </p>
       </Shell>
     );

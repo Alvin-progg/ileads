@@ -10,7 +10,7 @@ export default async function TeachersPage() {
   const [{ data: teachers }, { data: assignments }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, active")
+      .select("id, full_name, active, is_special")
       .eq("role", "teacher")
       .order("full_name"),
     supabase.from("teacher_assignments").select("teacher_id, grade_level"),
@@ -30,6 +30,7 @@ export default async function TeachersPage() {
             teacherId={t.id}
             fullName={t.full_name}
             active={t.active}
+            isSpecial={t.is_special}
             initialGrades={
               assignments
                 ?.filter((a) => a.teacher_id === t.id)

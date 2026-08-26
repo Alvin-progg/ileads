@@ -8,6 +8,8 @@ import {
   EXAM_GRADES,
   PHILIRI_GRADES,
   RMA_GRADES,
+  KINDER,
+  gradeHeading,
   gradeLabel,
 } from "@/lib/grades";
 import {
@@ -113,8 +115,9 @@ export default async function LearnerProfilePage({
 
       {!showCrla && !showRma && !showPhiliri && !showExam && (
         <p className="text-neutral-500">
-          No assessment modules are configured for Grade {gradeLabel(grade)}{" "}
-          yet.
+          {grade === KINDER
+            ? "Kindergarten learners are kept on the roster only — no assessments are encoded in I-LEADS."
+            : `No assessment modules are configured for ${gradeHeading(grade)} yet.`}
         </p>
       )}
 

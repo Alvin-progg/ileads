@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { CRLA_GRADES, PHILIRI_GRADES, RMA_GRADES } from "@/lib/grades";
+import { CRLA_GRADES, PHILIRI_GRADES, RMA_GRADES, gradeScopeLabel } from "@/lib/grades";
 import { LANGUAGE_NAMES } from "@/lib/languages";
 import { buildDashboard, type CurrentRound, type GradeCardData } from "@/lib/dashboard/build-dashboard.ts";
 import { GradeCard } from "../dashboard/grade-card.tsx";
@@ -99,12 +99,12 @@ export default async function MyClassPage() {
       <h1 className="mb-1 text-2xl font-bold">My Class</h1>
       <p className="mb-6 text-[13px] text-neutral-500">
         {viewer.fullName ? `${viewer.fullName} · ` : ""}
-        Grade{viewer.allowedGrades.length > 1 ? "s" : ""} {viewer.allowedGrades.join(", ")}
+        {gradeScopeLabel(viewer.allowedGrades)}
       </p>
 
       <section className="mb-8" data-tour="quick-links">
         <h2 className="mb-3 text-[13px] font-bold uppercase tracking-wide text-neutral-500">
-          Your Grade{viewer.allowedGrades.length > 1 ? "s" : ""}
+          Your Classes
         </h2>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {data.gradeCards.map((card) => (

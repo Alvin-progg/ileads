@@ -16,7 +16,9 @@ This repo uses Next.js 16.3.1 — newer than most training data. Per AGENTS.md, 
 
 ## What this project is
 
-I-LEADS: prototype web app for a DepEd action research at Ligaya Primary School (multigrade school, 4 teachers + 1 school head, ~60 learners, Grades 1–6; the school has no Kindergarten section). It replaces a manual Excel workflow for learner assessment records. The research measures reliability, so data loss is the #1 failure mode to design against.
+I-LEADS: prototype web app for a DepEd action research at Ligaya Primary School (multigrade school, 4 teachers + 1 school head, ~60 learners, Kindergarten + Grades 1–6). It replaces a manual Excel workflow for learner assessment records. The research measures reliability, so data loss is the #1 failure mode to design against.
+
+Kindergarten is `grade_level` 0 and is **roster-only**: Kinder learners are enrolled, listed, edited and counted in headcounts, but sit no CRLA/RMA/Phil-IRI/exam and appear in no district export. That exclusion is structural — no `*_GRADES` list in `lib/grades.ts` contains 0, and `learning_areas`/`scoring_rules` still CHECK `grade_level between 1 and 6`.
 
 Stack: Next.js App Router + TypeScript + Tailwind v4, Supabase cloud (Postgres, Auth, RLS), deployed on Vercel, all free tier. Currently a fresh create-next-app scaffold — Supabase is not wired up yet.
 
@@ -26,7 +28,7 @@ Build order: follow `ILEADS-scrum-backlog.md` tickets #1–18 strictly in order 
 
 - **Raw scores in, levels computed out.** Teachers encode raw scores mirroring official DepEd Excel scoresheets. The system computes levels/profiles via official cut-offs. Never let a user type a level directly.
 - **Cut-offs live in a `scoring_rules` table (jsonb), never hardcoded.** DepEd revises instruments; rule files are versioned (e.g. CRLA2v1, RMA2v2).
-- **Roles enforced by RLS, not just UI.** `head` sees all; `teacher` sees only assigned grade levels (a teacher can hold 2+ grades).
+- **Roles enforced by RLS, not just UI.** `head` sees all; `teacher` sees only assigned grade levels (a teacher can hold 2+ grades). Grade access comes from `teacher_assignments` (grade 0 = Kinder), never from `profiles.is_special` — that column is the head's "special teacher" display label and grants nothing.
 - **Entry grids are keyboard-first** (Tab/Enter navigation), autosave per row with a visible saved/saving/failed indicator and retry on failure.
 - **District exports fill the blank official .xlsx templates cell-by-cell** — never rebuild the layouts.
 - **Unique keys:** `learners.lrn` (12 digits); `crla(learner, round, language)`; `rma(learner, round)`; `exam(learner, round, learning_area)`.

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
+import { gradeScopeLabel } from "@/lib/grades";
 import { LearnerTable } from "./learner-table";
 
 export const metadata = { title: "Learners — I-LEADS" };
@@ -22,7 +23,7 @@ export default async function LearnersPage() {
           <p className="text-sm text-neutral-500">
             {viewer.isHead
               ? "All grade levels"
-              : `Grade${viewer.allowedGrades.length > 1 ? "s" : ""} ${viewer.allowedGrades.join(", ")}`}
+              : gradeScopeLabel(viewer.allowedGrades)}
           </p>
         </div>
         <Link

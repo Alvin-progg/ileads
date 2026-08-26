@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { PHILIRI_GRADES, gradeLabel } from "@/lib/grades";
+import { PHILIRI_GRADES, gradeScopeLabel } from "@/lib/grades";
 import { getPhiliriRules, tryGetRules } from "@/lib/scoring/load.ts";
 import { LANGUAGE_NAMES, orderLanguages } from "@/lib/languages";
 import { PhiliriGrid, type Learner } from "./philiri-grid.tsx";
@@ -31,7 +31,7 @@ export default async function PhiliriPage({
         </p>
         <p className="mt-2 text-sm text-neutral-500">
           Your grade levels:{" "}
-          {viewer.allowedGrades.map((g) => gradeLabel(g)).join(", ") || "none"}.
+          {gradeScopeLabel(viewer.allowedGrades)}.
           Ask the school head if this looks wrong.
         </p>
       </Shell>

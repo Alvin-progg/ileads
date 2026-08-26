@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { RMA_GRADES, gradeLabel } from "@/lib/grades";
+import { RMA_GRADES, gradeScopeLabel } from "@/lib/grades";
 import { getRmaRules, tryGetRules } from "@/lib/scoring/load.ts";
 import { RmaGrid, type Learner } from "./rma-grid.tsx";
 import type { RmaRowValues } from "./actions.ts";
@@ -30,7 +30,7 @@ export default async function RmaPage({
         </p>
         <p className="mt-2 text-sm text-neutral-500">
           Your grade levels:{" "}
-          {viewer.allowedGrades.map((g) => gradeLabel(g)).join(", ") || "none"}.
+          {gradeScopeLabel(viewer.allowedGrades)}.
           Ask the school head if this looks wrong.
         </p>
       </Shell>

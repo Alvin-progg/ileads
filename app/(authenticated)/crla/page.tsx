@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { CRLA_GRADES, gradeLabel } from "@/lib/grades";
+import { CRLA_GRADES, gradeScopeLabel } from "@/lib/grades";
 import { getCrlaRules } from "@/lib/scoring/load.ts";
 import { LANGUAGE_NAMES, orderLanguages } from "@/lib/languages";
 import { CrlaGrid, type Learner } from "./crla-grid.tsx";
@@ -31,7 +31,7 @@ export default async function CrlaPage({
         </p>
         <p className="mt-2 text-sm text-neutral-500">
           Your grade levels:{" "}
-          {viewer.allowedGrades.map((g) => gradeLabel(g)).join(", ") || "none"}.
+          {gradeScopeLabel(viewer.allowedGrades)}.
           Ask the school head if this looks wrong.
         </p>
       </Shell>

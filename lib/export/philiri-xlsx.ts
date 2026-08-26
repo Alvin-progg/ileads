@@ -14,7 +14,9 @@ const TEMPLATE_FILE = "PhilIRI_blank.xlsx";
 const SHEET_NAME = "Summary";
 
 /** Each grade occupies a 2-row block, one row per language (FIL then ENG,
- * matching orderLanguages), starting at row 4. */
+ * matching orderLanguages), starting at row 4. Callers must pass a grade from
+ * PHILIRI_GRADES — indexOf returns -1 for anything else (Kindergarten
+ * included), which would write to row 2. */
 function blockFirstRow(grade: number): number {
   return 4 + (PHILIRI_GRADES.indexOf(grade) * 2);
 }

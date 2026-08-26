@@ -4,6 +4,7 @@
 import type { GradeCardData } from "@/lib/dashboard/build-dashboard.ts";
 import { EXAM_MASTERY_THRESHOLD } from "../dashboard-colors.ts";
 import { TIER_META, tierForLevel, type TierInstrument } from "@/lib/status-tiers";
+import { gradeHeading } from "@/lib/grades";
 
 export function StatTile({
   label,
@@ -68,7 +69,7 @@ export function GradeCard({ card }: { card: GradeCardData }) {
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
       <div className="mb-3 flex items-baseline justify-between">
-        <h3 className="text-[15px] font-bold">Grade {card.grade}</h3>
+        <h3 className="text-[15px] font-bold">{gradeHeading(card.grade)}</h3>
         <p className="text-[12px] text-neutral-500">
           {statusLine}
           {card.teachers.length > 0 ? ` · ${card.teachers.join(", ")}` : ""}

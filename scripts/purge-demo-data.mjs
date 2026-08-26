@@ -4,7 +4,8 @@
 // learning_areas, profiles, and auth users untouched.
 //
 // Demo learners are identified by the deterministic fake LRN scheme from
-// scripts/seed-data.mjs: "9" + grade(1-6) + 2-digit seq + 8 zeros.
+// scripts/seed-data.mjs: "9" + grade(0-6, 0 = Kindergarten) + 2-digit seq
+// + 8 zeros.
 // learner_id foreign keys have no ON DELETE CASCADE, so result rows are
 // deleted first.
 //
@@ -16,7 +17,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 
-const DEMO_LRN = /^9[1-6]\d{2}0{8}$/;
+const DEMO_LRN = /^9[0-6]\d{2}0{8}$/;
 
 const env = Object.fromEntries(
   readFileSync(new URL("../.env.local", import.meta.url), "utf8")
@@ -60,7 +61,8 @@ if (demoIds.length === 0) {
 
 console.log(`Matched ${demoIds.length} demo learner(s):`);
 for (const l of demoLearners) {
-  console.log(`  Grade ${l.grade_level} · ${l.lrn} · ${l.last_name}, ${l.first_name}`);
+  const grade = l.grade_level === 0 ? "Kindergarten" : `Grade ${l.grade_level}`;
+  console.log(`  ${grade} · ${l.lrn} · ${l.last_name}, ${l.first_name}`);
 }
 
 const RESULT_TABLES = ["crla_results", "rma_results", "philiri_results", "exam_results"];

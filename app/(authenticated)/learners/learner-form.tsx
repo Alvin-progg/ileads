@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { gradeLabel } from "@/lib/grades";
+import { KINDER, gradeHeading } from "@/lib/grades";
 import { createLearner, updateLearner, type LearnerInput } from "./actions";
 
 const inputClasses =
@@ -32,8 +32,15 @@ export function LearnerForm({ mode, allowedGrades, learnerId, initial }: Props) 
   const [extName, setExtName] = useState(initial?.ext_name ?? "");
   const [sex, setSex] = useState<"M" | "F">(initial?.sex ?? "M");
   const [birthdate, setBirthdate] = useState(initial?.birthdate ?? "");
+  // Kinder is grade 0 and sorts first, but it is the rarest choice — default
+  // to the lowest real grade so a mis-grade needs a deliberate pick. A
+  // Kinder-only teacher (allowedGrades = [0]) still lands on 0 via the
+  // second fallback.
   const [gradeLevel, setGradeLevel] = useState(
-    initial?.grade_level ?? allowedGrades[0] ?? 0
+    initial?.grade_level ??
+      allowedGrades.find((g) => g !== KINDER) ??
+      allowedGrades[0] ??
+      1
   );
   const [status, setStatus] = useState<LearnerInput["status"]>(
     initial?.status ?? "enrolled"
@@ -171,7 +178,7 @@ export function LearnerForm({ mode, allowedGrades, learnerId, initial }: Props) 
           >
             {allowedGrades.map((g) => (
               <option key={g} value={g}>
-                {gradeLabel(g)}
+                {gradeHeading(g)}
               </option>
             ))}
           </select>

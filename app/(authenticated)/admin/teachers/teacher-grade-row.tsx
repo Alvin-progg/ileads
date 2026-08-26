@@ -3,23 +3,27 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { GRADE_LEVELS, gradeLabel } from "@/lib/grades";
-import { saveTeacherGrades, setTeacherActive } from "./actions";
+import { saveTeacherGrades, setTeacherActive, setTeacherSpecial } from "./actions";
 
 export function TeacherGradeRow({
   teacherId,
   fullName,
   active: initialActive,
+  isSpecial,
   initialGrades,
 }: {
   teacherId: string;
   fullName: string;
   active: boolean;
+  isSpecial: boolean;
   initialGrades: number[];
 }) {
   const [grades, setGrades] = useState(new Set(initialGrades));
   const [saving, setSaving] = useState(false);
   const [active, setActive] = useState(initialActive);
   const [togglingActive, setTogglingActive] = useState(false);
+  const [special, setSpecial] = useState(isSpecial);
+  const [togglingSpecial, setTogglingSpecial] = useState(false);
 
   function toggle(grade: number) {
     setGrades((prev) => {
@@ -53,6 +57,24 @@ export function TeacherGradeRow({
     toast.success(next ? `${fullName} reactivated.` : `${fullName} deactivated.`);
   }
 
+  async function handleToggleSpecial() {
+    const next = !special;
+    setTogglingSpecial(true);
+    const { error } = await setTeacherSpecial(teacherId, next);
+    setTogglingSpecial(false);
+
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    setSpecial(next);
+    toast.success(
+      next
+        ? `${fullName} marked as special teacher.`
+        : `${fullName} is no longer marked special.`
+    );
+  }
+
   return (
     <div
       className={
@@ -62,11 +84,23 @@ export function TeacherGradeRow({
     >
       <div className="w-40 shrink-0">
         <p className="font-medium">{fullName}</p>
-        {!active && (
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
-            Deactivated
-          </span>
-        )}
+        <div className="flex flex-wrap gap-1">
+          {!active && (
+            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium text-neutral-500">
+              Deactivated
+            </span>
+          )}
+          {/* "Special", not "Kinder": the label is head-applied and may
+              legitimately disagree with the grade pills beside it. */}
+          {special && (
+            <span
+              title="Kindergarten teacher"
+              className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-medium text-violet-700"
+            >
+              Special
+            </span>
+          )}
+        </div>
       </div>
       <div className="flex gap-1.5" role="group" aria-label={`${fullName}'s grade levels`}>
         {GRADE_LEVELS.map((grade) => {
@@ -91,6 +125,14 @@ export function TeacherGradeRow({
         })}
       </div>
       <div className="ml-auto flex items-center gap-2">
+        <button
+          type="button"
+          onClick={handleToggleSpecial}
+          disabled={!active || togglingSpecial}
+          className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-neutral-500 hover:bg-neutral-100 disabled:opacity-55"
+        >
+          {togglingSpecial ? "…" : special ? "Unmark special" : "Mark special"}
+        </button>
         <button
           type="button"
           onClick={handleToggleActive}

@@ -21,6 +21,7 @@ export function CreateTeacherForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSpecial, setIsSpecial] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -30,6 +31,7 @@ export function CreateTeacherForm() {
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    setIsSpecial(false);
     setConfirmError(null);
   }
 
@@ -43,7 +45,13 @@ export function CreateTeacherForm() {
     setConfirmError(null);
     setSubmitting(true);
 
-    const { error } = await createTeacher({ firstName, lastName, email, password });
+    const { error } = await createTeacher({
+      firstName,
+      lastName,
+      email,
+      password,
+      isSpecial,
+    });
 
     setSubmitting(false);
 
@@ -160,6 +168,24 @@ export function CreateTeacherForm() {
           {confirmError}
         </p>
       )}
+
+      <label className="mt-4 flex items-start gap-2.5">
+        <input
+          type="checkbox"
+          checked={isSpecial}
+          onChange={(e) => setIsSpecial(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-emerald-600"
+        />
+        <span className="text-[13px] font-medium">
+          Special teacher
+          {/* Spelled out because the checkbox grants nothing: Kinder access
+              comes from the grade assignment, not from this label. */}
+          <span className="block font-normal text-[12px] text-neutral-500">
+            Handles Kindergarten. This is a label only — assign Kindergarten
+            below to give access.
+          </span>
+        </span>
+      </label>
 
       <button
         type="submit"
