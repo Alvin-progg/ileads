@@ -9,11 +9,12 @@ export async function getViewer() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("full_name, role, has_seen_tour")
+    .select("full_name, role, has_seen_tour, school_id, schools(id, name, school_id, address)")
     .eq("id", user!.id)
     .single();
 
   const isHead = profile?.role === "head";
+  const school = Array.isArray(profile?.schools) ? profile.schools[0] : profile?.schools;
   let allowedGrades: number[] = [...GRADE_LEVELS];
 
   if (!isHead) {
@@ -31,5 +32,7 @@ export async function getViewer() {
     isHead,
     allowedGrades,
     hasSeenTour: profile?.has_seen_tour ?? false,
+    schoolId: profile?.school_id ?? null,
+    school: school ?? null,
   };
 }

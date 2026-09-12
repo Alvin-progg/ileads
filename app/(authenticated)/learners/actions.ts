@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getViewer } from "@/lib/viewer";
 import { friendlyError } from "@/lib/errors";
 
 const PERMISSION_MESSAGE = "You can only manage learners in your assigned grade levels.";
@@ -34,7 +35,10 @@ function toRow(input: LearnerInput) {
 
 export async function createLearner(input: LearnerInput) {
   const supabase = await createClient();
-  const { error } = await supabase.from("learners").insert(toRow(input));
+  const viewer = await getViewer();
+  const { error } = await supabase
+    .from("learners")
+    .insert({ ...toRow(input), school_id: viewer.schoolId });
 
   if (error) return { error: friendlyError(error, { permissionMessage: PERMISSION_MESSAGE }) };
   revalidatePath("/learners");

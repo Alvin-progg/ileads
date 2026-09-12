@@ -13,7 +13,8 @@ export async function GET(
   const buffer = await buildPhiliriSchoolSummary(
     result.supabase,
     result.round.id,
-    result.round.name
+    result.round.name,
+    result.schoolId
   );
 
   return new Response(buffer, {

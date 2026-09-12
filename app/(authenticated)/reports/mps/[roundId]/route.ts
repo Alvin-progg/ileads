@@ -10,7 +10,12 @@ export async function GET(
   const result = await loadExportRound("exam", roundId);
   if (!result.ok) return result.response;
 
-  const buffer = await buildMpsWorkbook(result.supabase, result.round.id, result.round.name);
+  const buffer = await buildMpsWorkbook(
+    result.supabase,
+    result.round.id,
+    result.round.name,
+    result.schoolId
+  );
 
   return new Response(buffer, {
     headers: {

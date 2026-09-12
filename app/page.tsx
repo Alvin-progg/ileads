@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { TIER_ORDER, TIER_META } from "@/lib/status-tiers";
-import { SCHOOL } from "@/lib/school";
 
 export const metadata = {
   title: "I-LEADS",
@@ -238,7 +237,6 @@ export default function LandingPage() {
             >
               Log in to I-LEADS
             </Link>
-            <p className="mt-4 text-[12px] text-neutral-400">{SCHOOL.name}</p>
           </section>
         </div>
       </main>

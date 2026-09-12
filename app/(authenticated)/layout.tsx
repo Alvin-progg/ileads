@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
-import { SCHOOL } from "@/lib/school";
+import { resolveSchool } from "@/lib/school";
 import { CRLA_GRADES, EXAM_GRADES, PHILIRI_GRADES, RMA_GRADES } from "@/lib/grades";
 import { Sidebar, type NavItem } from "./sidebar.tsx";
 import { GuidedTour } from "./tour/guided-tour.tsx";
@@ -11,6 +11,7 @@ export default async function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const viewer = await getViewer();
+  const school = resolveSchool(viewer.school);
 
   // The tour's learner-profile step needs a concrete id to route to. Heads
   // see this step too now, so this runs for both roles — a head's
@@ -66,7 +67,7 @@ export default async function AuthenticatedLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print flex items-center justify-between border-b border-neutral-200 bg-white px-6 py-3">
           <p className="pl-10 text-[13px] font-medium text-neutral-700 md:pl-0">
-            {SCHOOL.name}
+            {school.name}
           </p>
           <p className="text-[13px] text-neutral-500">
             {viewer.fullName} · {viewer.role}

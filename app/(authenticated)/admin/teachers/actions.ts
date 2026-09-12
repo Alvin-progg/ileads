@@ -60,7 +60,11 @@ export async function createTeacher(input: CreateTeacherInput) {
     email,
     password: input.password,
     email_confirm: true,
-    user_metadata: { full_name: `${firstName} ${lastName}`, role: "teacher" },
+    user_metadata: {
+      full_name: `${firstName} ${lastName}`,
+      role: "teacher",
+      school_id: viewer.schoolId,
+    },
   });
 
   if (error) {

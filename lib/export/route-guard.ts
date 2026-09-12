@@ -1,17 +1,28 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
+import { resolveSchool, type SchoolDetails } from "@/lib/school";
 
 /**
  * Shared setup for every export download route: only the school head may
  * download a School Summary, and every route needs the same round lookup.
  * Returns a Response to bail out with, or the round to export.
+ *
+ * schoolId/school are returned so builders can pass them straight through to
+ * a defense-in-depth `.eq("school_id", ...)` on their own queries, on top of
+ * RLS already scoping every table by the caller's school.
  */
 export async function loadExportRound(
   tool: string,
   roundId: string
 ): Promise<
-  | { ok: true; supabase: SupabaseClient; round: { id: number; name: string } }
+  | {
+      ok: true;
+      supabase: SupabaseClient;
+      round: { id: number; name: string };
+      schoolId: number;
+      school: SchoolDetails;
+    }
   | { ok: false; response: Response }
 > {
   const viewer = await getViewer();
@@ -31,5 +42,11 @@ export async function loadExportRound(
     return { ok: false, response: new Response("Round not found", { status: 404 }) };
   }
 
-  return { ok: true, supabase, round };
+  return {
+    ok: true,
+    supabase,
+    round,
+    schoolId: viewer.schoolId!,
+    school: resolveSchool(viewer.school),
+  };
 }

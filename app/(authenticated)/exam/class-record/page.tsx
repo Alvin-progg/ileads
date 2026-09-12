@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
 import { getGradeTeacherNames } from "@/lib/teachers";
 import { EXAM_GRADES, gradeLabel } from "@/lib/grades";
-import { SCHOOL, schoolDetailsIncomplete } from "@/lib/school";
+import { resolveSchool, schoolDetailsIncomplete } from "@/lib/school";
 import { summariseExamSubject, type ExamEntry, type Sex } from "@/lib/scoring/exam-summary.ts";
 import { PrintButton } from "../../print-button.tsx";
 
@@ -23,6 +23,7 @@ export default async function ExamClassRecordPage({
   const params = await searchParams;
   const supabase = await createClient();
   const viewer = await getViewer();
+  const school = resolveSchool(viewer.school);
 
   const available = EXAM_GRADES.filter(
     (g) => viewer.isHead || viewer.allowedGrades.includes(g)
@@ -173,7 +174,7 @@ export default async function ExamClassRecordPage({
         </div>
       </div>
 
-      {schoolDetailsIncomplete() && (
+      {schoolDetailsIncomplete(viewer.school) && (
         <p className="no-print mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
           School details are still placeholders. Fill them in{" "}
           <code className="font-mono">lib/school.ts</code> before submitting this
@@ -189,12 +190,12 @@ export default async function ExamClassRecordPage({
           Grade {grade} Exam Class Record — Mean Percentage Score
         </h1>
         <dl className="mt-3 grid grid-cols-2 gap-x-8 gap-y-1 text-[12px] sm:grid-cols-3">
-          <Field label="School" value={SCHOOL.name} />
-          <Field label="School ID" value={SCHOOL.id} />
-          <Field label="District" value={SCHOOL.district} />
-          <Field label="Division" value={SCHOOL.division} />
-          <Field label="Region" value={SCHOOL.region} />
-          <Field label="School Year" value={SCHOOL.schoolYear} />
+          <Field label="School" value={school.name} />
+          <Field label="School ID" value={school.id} />
+          <Field label="District" value={school.district} />
+          <Field label="Division" value={school.division} />
+          <Field label="Region" value={school.region} />
+          <Field label="School Year" value={school.schoolYear} />
           <Field label="Grade" value={`Grade ${grade}`} />
           <Field label="Quarter" value={round.name} />
           <Field label="Teacher" value={teachers} />

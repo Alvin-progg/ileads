@@ -4,8 +4,8 @@
 // learning_areas, profiles, and auth users untouched.
 //
 // Demo learners are identified by the deterministic fake LRN scheme from
-// scripts/seed-data.mjs: "9" + grade(0-6, 0 = Kindergarten) + 2-digit seq
-// + 8 zeros.
+// scripts/seed-data.mjs: school index(1-3) + grade(0-6, 0 = Kindergarten)
+// + 2-digit seq + 8 zeros.
 // learner_id foreign keys have no ON DELETE CASCADE, so result rows are
 // deleted first.
 //
@@ -17,7 +17,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 
-const DEMO_LRN = /^9[0-6]\d{2}0{8}$/;
+const DEMO_LRN = /^[1-3][0-6]\d{2}0{8}$/;
 
 const env = Object.fromEntries(
   readFileSync(new URL("../.env.local", import.meta.url), "utf8")
@@ -42,7 +42,7 @@ const confirm = process.argv.includes("--confirm");
 const { data: candidates, error: fetchError } = await supabase
   .from("learners")
   .select("id, lrn, last_name, first_name, grade_level")
-  .like("lrn", "9%00000000");
+  .like("lrn", "%00000000");
 
 if (fetchError) {
   console.error("Failed to fetch learners:", fetchError.message);

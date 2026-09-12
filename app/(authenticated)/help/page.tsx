@@ -1,4 +1,5 @@
 import { getViewer } from "@/lib/viewer";
+import { resolveSchool } from "@/lib/school";
 import { TakeTourButton } from "../tour/take-tour-button.tsx";
 import { Reference } from "./reference.tsx";
 
@@ -6,6 +7,7 @@ export const metadata = { title: "Help — I-LEADS" };
 
 export default async function HelpPage() {
   const viewer = await getViewer();
+  const school = resolveSchool(viewer.school);
 
   return (
     <main className="mx-auto max-w-[900px] p-6">
@@ -26,7 +28,7 @@ export default async function HelpPage() {
         printable reference below.
       </p>
 
-      <Reference isHead={viewer.isHead} />
+      <Reference isHead={viewer.isHead} schoolName={school.name} />
     </main>
   );
 }

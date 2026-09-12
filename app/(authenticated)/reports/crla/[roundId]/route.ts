@@ -10,7 +10,12 @@ export async function GET(
   const result = await loadExportRound("crla", roundId);
   if (!result.ok) return result.response;
 
-  const buffer = await buildCrlaSchoolSummary(result.supabase, result.round.id);
+  const buffer = await buildCrlaSchoolSummary(
+    result.supabase,
+    result.round.id,
+    result.schoolId,
+    result.school
+  );
 
   return new Response(buffer, {
     headers: {

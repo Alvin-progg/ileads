@@ -4,8 +4,12 @@
 // data yet". NOT idempotent-safe against re-seeding different levels (upserts
 // on each table's unique constraint, so re-running just overwrites with the
 // same values) — safe to re-run, but don't treat this as real data.
+//
+// Scoped to one school at a time (default: Ligaya, DepEd school_id 107460)
+// — since scripts/seed-data.mjs now seeds learners/learning_areas per
+// school, an unscoped query here would mix rows across schools.
 // Requires SUPABASE_SERVICE_ROLE_KEY in .env.local.
-// Run: node scripts/seed-chart-demo.mjs
+// Run: node scripts/seed-chart-demo.mjs [depedSchoolId]
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "node:fs";
 
@@ -59,14 +63,28 @@ async function enrolledLearners(grade) {
     .select("id, lrn")
     .eq("grade_level", grade)
     .eq("status", "enrolled")
+    .eq("school_id", schoolId)
     .order("lrn");
   if (error) throw new Error(`learners grade ${grade}: ${error.message}`);
   return data;
 }
 
+const depedSchoolId = Number(process.argv[2] ?? 107460);
+const { data: schoolRow, error: schoolError } = await supabase
+  .from("schools")
+  .select("id, name")
+  .eq("school_id", depedSchoolId)
+  .single();
+if (schoolError || !schoolRow) {
+  throw new Error(`no schools row for DepEd school_id ${depedSchoolId}`);
+}
+const schoolId = schoolRow.id;
+console.log(`Seeding chart demo data for ${schoolRow.name} (school_id ${schoolId})`);
+
 const { data: learningAreasData, error: laError } = await supabase
   .from("learning_areas")
-  .select("id, name, grade_level");
+  .select("id, name, grade_level")
+  .eq("school_id", schoolId);
 if (laError) throw new Error(`learning_areas: ${laError.message}`);
 
 const crlaBosy = await roundId("crla", "BOSY");

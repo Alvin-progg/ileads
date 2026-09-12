@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { CRLA_GRADES } from "@/lib/grades";
 import { getGradeTeacherNames } from "@/lib/teachers";
 import { orderLanguages } from "@/lib/languages";
-import { SCHOOL } from "@/lib/school";
+import type { SchoolDetails } from "@/lib/school";
 import { getCrlaRules } from "@/lib/scoring/load.ts";
 import { toClassRecordRow } from "@/lib/scoring/class-record.ts";
 import { forceRecalcOnOpen, loadTemplate, toBlob } from "./xlsx-template";
@@ -54,13 +54,15 @@ type Learner = {
  */
 export async function buildCrlaSchoolSummary(
   supabase: SupabaseClient,
-  roundId: number
+  roundId: number,
+  schoolId: number,
+  school: SchoolDetails
 ): Promise<Blob> {
   const workbook = await loadTemplate(TEMPLATE_FILE);
   const sheet = workbook.getWorksheet(SHEET_NAME);
   if (!sheet) throw new Error(`Template is missing the "${SHEET_NAME}" sheet`);
 
-  sheet.getCell("B5").value = SCHOOL.name;
+  sheet.getCell("B5").value = school.name;
 
   let row = FIRST_DATA_ROW;
 
@@ -75,6 +77,7 @@ export async function buildCrlaSchoolSummary(
       .select("id, sex")
       .eq("grade_level", grade)
       .eq("status", "enrolled")
+      .eq("school_id", schoolId)
       .order("last_name")
       .order("first_name");
 

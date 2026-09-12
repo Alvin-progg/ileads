@@ -53,7 +53,8 @@ type Learner = { id: string; sex: string };
 export async function buildPhiliriSchoolSummary(
   supabase: SupabaseClient,
   roundId: number,
-  roundName: string
+  roundName: string,
+  schoolId: number
 ): Promise<Blob> {
   const levelColumns = roundName === "Post" ? LEVEL_COLUMNS_POST : LEVEL_COLUMNS_PRE;
 
@@ -71,6 +72,7 @@ export async function buildPhiliriSchoolSummary(
       .select("id, sex")
       .eq("grade_level", grade)
       .eq("status", "enrolled")
+      .eq("school_id", schoolId)
       .order("last_name")
       .order("first_name");
 

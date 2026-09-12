@@ -1,5 +1,4 @@
 import { PrintButton } from "../print-button.tsx";
-import { SCHOOL } from "@/lib/school";
 
 function TeacherReference() {
   return (
@@ -135,7 +134,13 @@ function HeadReference() {
   );
 }
 
-export function Reference({ isHead }: { isHead: boolean }) {
+export function Reference({
+  isHead,
+  schoolName,
+}: {
+  isHead: boolean;
+  schoolName: string;
+}) {
   return (
     <section className="ref-sheet mt-8 border-t border-neutral-200 pt-6">
       <div className="no-print mb-4 flex items-center justify-between">
@@ -143,7 +148,7 @@ export function Reference({ isHead }: { isHead: boolean }) {
         <PrintButton />
       </div>
       <p className="mb-4 hidden text-[12px] text-neutral-500 print:block">
-        {SCHOOL.name} · I-LEADS
+        {schoolName} · I-LEADS
       </p>
       {isHead ? <HeadReference /> : <TeacherReference />}
     </section>

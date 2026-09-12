@@ -51,7 +51,8 @@ type Learner = { id: string; sex: string };
 export async function buildMpsWorkbook(
   supabase: SupabaseClient,
   roundId: number,
-  roundName: string
+  roundName: string,
+  schoolId: number
 ): Promise<Blob> {
   const headerRow = QUARTER_HEADER_ROW[roundName];
   if (!headerRow) {
@@ -62,7 +63,8 @@ export async function buildMpsWorkbook(
 
   const { data: learningAreas } = await supabase
     .from("learning_areas")
-    .select("id, name, grade_level, hps_per_quarter");
+    .select("id, name, grade_level, hps_per_quarter")
+    .eq("school_id", schoolId);
 
   const areasBySubject = new Map<string, Map<number, { id: number; hps: number | null }>>();
   for (const area of learningAreas ?? []) {
@@ -86,7 +88,8 @@ export async function buildMpsWorkbook(
         .from("learners")
         .select("id, sex")
         .eq("grade_level", grade)
-        .eq("status", "enrolled");
+        .eq("status", "enrolled")
+        .eq("school_id", schoolId);
 
       const { data: results } = await supabase
         .from("exam_results")
