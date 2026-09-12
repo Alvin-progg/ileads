@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { GRADE_LEVELS, gradeLabel } from "@/lib/grades";
 import { saveTeacherGrades, setTeacherActive, setTeacherSpecial } from "./actions";
+import { ResetTeacherPasswordForm } from "./reset-teacher-password.tsx";
 
 export function TeacherGradeRow({
   teacherId,
@@ -24,6 +25,7 @@ export function TeacherGradeRow({
   const [togglingActive, setTogglingActive] = useState(false);
   const [special, setSpecial] = useState(isSpecial);
   const [togglingSpecial, setTogglingSpecial] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   function toggle(grade: number) {
     setGrades((prev) => {
@@ -143,6 +145,14 @@ export function TeacherGradeRow({
         </button>
         <button
           type="button"
+          onClick={() => setResettingPassword((v) => !v)}
+          disabled={!active}
+          className="rounded-lg px-3 py-1.5 text-[13px] font-medium text-neutral-500 hover:bg-neutral-100 disabled:opacity-55"
+        >
+          Reset password
+        </button>
+        <button
+          type="button"
           onClick={handleSave}
           disabled={saving || !active}
           className="rounded-lg bg-neutral-900 px-4 py-1.5 text-[13px] font-medium text-white hover:bg-neutral-800 disabled:opacity-55"
@@ -150,6 +160,13 @@ export function TeacherGradeRow({
           {saving ? "Saving…" : "Save"}
         </button>
       </div>
+      {resettingPassword && (
+        <ResetTeacherPasswordForm
+          teacherId={teacherId}
+          fullName={fullName}
+          onClose={() => setResettingPassword(false)}
+        />
+      )}
     </div>
   );
 }

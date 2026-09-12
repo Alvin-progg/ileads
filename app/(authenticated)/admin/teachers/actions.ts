@@ -138,6 +138,17 @@ export async function setTeacherActive(teacherId: string, active: boolean) {
     return { error: "You don't have permission to do that." };
   }
 
+  const supabase = await createClient();
+  const { data: teacher } = await supabase
+    .from("profiles")
+    .select("id, school_id, role")
+    .eq("id", teacherId)
+    .single();
+
+  if (!teacher || teacher.role !== "teacher" || teacher.school_id !== viewer.schoolId) {
+    return { error: "You don't have permission to do that." };
+  }
+
   const admin = createAdminClient();
   const { error: banError } = await admin.auth.admin.updateUserById(teacherId, {
     ban_duration: active ? "none" : "876000h",
@@ -146,8 +157,43 @@ export async function setTeacherActive(teacherId: string, active: boolean) {
     return { error: friendlyError(banError) };
   }
 
-  const supabase = await createClient();
   const { error } = await supabase.from("profiles").update({ active }).eq("id", teacherId);
+
+  return { error: error ? friendlyError(error) : null };
+}
+
+/**
+ * Direct-set, head-driven: the head types a new password and hands it to
+ * the teacher herself. No email, no reset link — teachers on shared
+ * devices with shaky connectivity may not check email regularly.
+ *
+ * The Admin API bypasses RLS entirely, so "head full access" on profiles
+ * can't guard this the way it guards a table write — the school_id check
+ * below is the same hand-written same-school guard already used by
+ * set_teacher_grades/set_learning_area_hps.
+ */
+export async function resetTeacherPassword(teacherId: string, newPassword: string) {
+  const viewer = await getViewer();
+  if (!viewer.isHead) {
+    return { error: "You don't have permission to do that." };
+  }
+  if (newPassword.length < 8) {
+    return { error: "Password must be at least 8 characters." };
+  }
+
+  const supabase = await createClient();
+  const { data: teacher } = await supabase
+    .from("profiles")
+    .select("id, school_id, role")
+    .eq("id", teacherId)
+    .single();
+
+  if (!teacher || teacher.role !== "teacher" || teacher.school_id !== viewer.schoolId) {
+    return { error: "You don't have permission to do that." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(teacherId, { password: newPassword });
 
   return { error: error ? friendlyError(error) : null };
 }

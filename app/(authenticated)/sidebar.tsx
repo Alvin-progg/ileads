@@ -16,7 +16,8 @@ export type IconKey =
   | "exams"
   | "teachers"
   | "reports"
-  | "help";
+  | "help"
+  | "account";
 
 export type NavItem = { label: string; href: string; icon: IconKey };
 
@@ -67,6 +68,12 @@ const ICONS: Record<IconKey, React.ReactNode> = {
       <circle cx="12" cy="12" r="8.5" />
       <path d="M9.6 9.3a2.4 2.4 0 1 1 3.4 2.2c-.9.4-1.3 1-1.3 1.9" strokeLinecap="round" />
       <path d="M12 17h.01" strokeLinecap="round" />
+    </>
+  ),
+  account: (
+    <>
+      <circle cx="12" cy="8.5" r="3.5" />
+      <path d="M5 20c0-3.9 3.1-7 7-7s7 3.1 7 7" />
     </>
   ),
 };
@@ -138,6 +145,14 @@ function NavLinks({
 function BottomSection({ onNavigate }: { onNavigate: () => void }) {
   return (
     <div className="shrink-0 space-y-1 border-t border-neutral-200 px-3 py-3">
+      <Link
+        href="/account"
+        onClick={onNavigate}
+        className="flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium text-neutral-600 hover:bg-neutral-100"
+      >
+        <Icon name="account" />
+        My Account
+      </Link>
       <Link
         href="/help"
         onClick={onNavigate}
