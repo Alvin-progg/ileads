@@ -1,6 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { TIER_ORDER, TIER_META } from "@/lib/status-tiers";
+import { SCHOOLS } from "@/lib/schools";
+
+const SCHOOL_ACCENTS = [
+  { tab: "bg-emerald-500", chip: "bg-emerald-50" },
+  { tab: "bg-sky-500", chip: "bg-sky-50" },
+  { tab: "bg-amber-500", chip: "bg-amber-50" },
+];
 
 export const metadata = {
   title: "I-LEADS",
@@ -179,6 +186,43 @@ export default function LandingPage() {
         </section>
 
         <div className="mx-auto max-w-5xl px-6 py-16 sm:py-24">
+          {/* School picker */}
+          <section>
+            <h2 className="text-center text-[13px] font-bold uppercase tracking-wide text-neutral-500">
+              Select Your School
+            </h2>
+            <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-3">
+              {SCHOOLS.map((school, i) => {
+                const accent = SCHOOL_ACCENTS[i % SCHOOL_ACCENTS.length];
+                return (
+                  <Link
+                    key={school.schoolId}
+                    href={`/login?school=${school.schoolId}`}
+                    className="group relative block pt-3"
+                  >
+                    <div
+                      aria-hidden
+                      className={`absolute left-6 top-0 h-4 w-16 rounded-t-lg transition-transform duration-200 group-hover:-translate-y-0.5 ${accent.tab}`}
+                    />
+                    <div className="relative flex flex-col items-center gap-3 rounded-xl rounded-tl-none border border-neutral-200 bg-white px-6 py-10 text-center shadow-sm transition-all duration-200 group-hover:-translate-y-1 group-hover:border-neutral-300 group-hover:shadow-lg">
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-full ${accent.chip}`}
+                      >
+                        <SchoolIcon />
+                      </div>
+                      <p className="text-[15px] font-semibold text-neutral-900">
+                        {school.name}
+                      </p>
+                      <span className="text-[12px] font-medium text-emerald-600 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                        Enter school →
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+
           {/* Learner Monitoring Status legend */}
           <section className="mt-20">
             <h2 className="text-center text-[13px] font-bold uppercase tracking-wide text-neutral-500">

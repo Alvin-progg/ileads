@@ -1,9 +1,17 @@
 import Image from "next/image";
 import { LoginForm } from "./login-form";
+import { schoolByDepedId } from "@/lib/schools";
 
 export const metadata = { title: "Sign in — I-LEADS" };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ school?: string }>;
+}) {
+  const params = await searchParams;
+  const school = schoolByDepedId(params.school ? Number(params.school) : undefined);
+
   return (
     <main
       className="grid min-h-screen place-items-center p-6"
@@ -25,7 +33,7 @@ export default function LoginPage() {
         />
         <h1 className="text-[21px] font-semibold">Sign in to I-LEADS</h1>
         <p className="mb-7 text-[13px] text-neutral-500">
-          Ligaya Primary School · learner records
+          {school ? school.name : "I-LEADS"} · learner records
         </p>
         <LoginForm />
         <p className="mt-5 text-center text-xs text-neutral-400">
