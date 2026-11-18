@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getViewer } from "@/lib/viewer";
 import { resolveSchool } from "@/lib/school";
-import { CRLA_GRADES, EXAM_GRADES, PHILIRI_GRADES, RMA_GRADES } from "@/lib/grades";
+import { CRLA_GRADES, EXAM_GRADES, PHILIRI_GRADES, RMA_GRADES, TALA_GRADES } from "@/lib/grades";
 import { Sidebar, type NavItem } from "./sidebar.tsx";
 import { GuidedTour } from "./tour/guided-tour.tsx";
 
@@ -45,6 +45,9 @@ export default async function AuthenticatedLayout({
       : []),
     ...(showsFor(PHILIRI_GRADES)
       ? [{ label: "Phil-IRI", href: "/philiri", icon: "philiri" as const }]
+      : []),
+    ...(showsFor(TALA_GRADES)
+      ? [{ label: "TALA", href: "/tala", icon: "tala" as const }]
       : []),
     ...(showsFor(EXAM_GRADES)
       ? [{ label: "Exams", href: "/exam", icon: "exams" as const }]

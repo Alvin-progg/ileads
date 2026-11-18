@@ -13,6 +13,7 @@ export type IconKey =
   | "crla"
   | "rma"
   | "philiri"
+  | "tala"
   | "exams"
   | "teachers"
   | "reports"
@@ -44,6 +45,9 @@ const ICONS: Record<IconKey, React.ReactNode> = {
   ),
   philiri: (
     <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H9l-4.5 4.5V16H6.5A2.5 2.5 0 0 1 4 13.5z" />
+  ),
+  tala: (
+    <path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" strokeLinejoin="round" />
   ),
   exams: (
     <>

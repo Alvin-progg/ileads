@@ -2,14 +2,16 @@
 // the rules the tests exercise and the rules the database holds are the same
 // values by construction rather than by hand-copying.
 //
-// Run: node --no-warnings scripts/gen-scoring-rules-sql.mjs > supabase/migrations/<ts>_seed_scoring_rules.sql
+// Run: node --no-warnings scripts/gen-scoring-rules-sql.mjs [tool] > supabase/migrations/<ts>_seed_scoring_rules.sql
+// The optional [tool] argument (e.g. "tala") emits only that instrument's rows.
 //
 // Keep --no-warnings and do NOT redirect stderr into the file: Node emits a
 // type-stripping warning on stderr that would otherwise land in the SQL and
 // break the migration.
 import { SEED_RULES } from "../lib/scoring/instruments.ts";
 
-const rows = SEED_RULES.map((r) => {
+const only = process.argv[2];
+const rows = SEED_RULES.filter((r) => !only || r.tool === only).map((r) => {
   // Single-quote escaping for the SQL literal.
   const json = JSON.stringify(r.rules).replaceAll("'", "''");
   return `  ('${r.tool}', ${r.grade_level}, '${r.version}', '${json}'::jsonb)`;

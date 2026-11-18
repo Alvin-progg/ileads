@@ -30,6 +30,8 @@ export const CRLA_GRADES: number[] = [1, 2, 3];
 export const RMA_GRADES: number[] = [1, 2, 3, 4, 5, 6];
 /** Grades with a Phil-IRI Oral Reading instrument. */
 export const PHILIRI_GRADES: number[] = [4, 5, 6];
+/** Grades with a Project TALA tracker. Excludes Kinder. */
+export const TALA_GRADES: number[] = [1, 2, 3, 4, 5, 6];
 /** Grades with an exam module. */
 export const EXAM_GRADES: number[] = [1, 2, 3, 4, 5, 6];
 

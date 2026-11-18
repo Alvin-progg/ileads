@@ -1,9 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CrlaRules, PhiliriRules, RmaRules } from "./types.ts";
+import type { CrlaRules, PhiliriRules, RmaRules, TalaRules } from "./types.ts";
 
 export const CRLA_VERSION = "CRLA2v1";
 export const RMA_VERSION = "RMA2v2";
 export const PHILIRI_VERSION = "PhilIRIv1";
+export const TALA_VERSION = "TALA-DM373s2026";
 
 /**
  * Fetches the cut-off rules for one instrument from the database.
@@ -60,6 +61,14 @@ export function getPhiliriRules(
   version: string = PHILIRI_VERSION
 ): Promise<PhiliriRules> {
   return getRules<PhiliriRules>(supabase, "philiri", gradeLevel, version);
+}
+
+export function getTalaRules(
+  supabase: SupabaseClient,
+  gradeLevel: number,
+  version: string = TALA_VERSION
+): Promise<TalaRules> {
+  return getRules<TalaRules>(supabase, "tala", gradeLevel, version);
 }
 
 /**

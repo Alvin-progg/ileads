@@ -208,3 +208,36 @@ export type PhiliriResult = {
    */
   overallLevel: string | null;
 };
+
+export type TalaProfileRule = {
+  label: string;
+  speed: "+" | "-";
+  comprehension: "+" | "-";
+  description: string;
+  program: string;
+};
+
+export type TalaRules = {
+  /** Minimum WCPM for S+. */
+  wcpmBenchmark: number;
+  comprehension: { items: number; plusAt: number };
+  /** Listed lowest to highest: the order drives Monthly Status. */
+  profiles: TalaProfileRule[];
+  readingsPerMonth: number;
+  philiriEquivalent: { category: string; profiles: string[] }[];
+};
+
+export type TalaInput = {
+  wcpm: number | null;
+  comprehensionCorrect: number | null;
+};
+
+export type TalaResult = {
+  speed: "+" | "-" | null;
+  comprehension: "+" | "-" | null;
+  profile: string | null;
+  description: string | null;
+  program: string | null;
+};
+
+export type TalaMovement = "First record" | "Moved up" | "Maintained" | "Moved down";

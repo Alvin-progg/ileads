@@ -17,6 +17,7 @@ import type {
   PhiliriLanguageRules,
   PhiliriRules,
   RmaRules,
+  TalaRules,
   RmaTask,
 } from "./types.ts";
 
@@ -357,6 +358,37 @@ export const PHILIRI_G4: PhiliriRules = { languages: PHILIRI_LANGUAGES };
 export const PHILIRI_G5: PhiliriRules = { languages: PHILIRI_LANGUAGES };
 export const PHILIRI_G6: PhiliriRules = { languages: PHILIRI_LANGUAGES };
 
+const TALA_PROFILES: TalaRules["profiles"] = [
+  { label: "S-C-", speed: "-", comprehension: "-", description: "Struggling Reader", program: "TALA-SULONG" },
+  { label: "S-C+", speed: "-", comprehension: "+", description: "Careful Reader", program: "TALA-BILIS" },
+  { label: "S+C-", speed: "+", comprehension: "-", description: "Word Caller", program: "TALA-UNAWA" },
+  { label: "S+C+", speed: "+", comprehension: "+", description: "Independent Reader", program: "TALA-HUSAY" },
+];
+
+const TALA_PHILIRI_EQUIVALENT: TalaRules["philiriEquivalent"] = [
+  { category: "Independent", profiles: ["S+C+"] },
+  { category: "Instructional", profiles: ["S+C-", "S-C+"] },
+  { category: "Frustration", profiles: ["S-C-"] },
+];
+
+function tala(wcpmBenchmark: number, items: number, plusAt: number): TalaRules {
+  return {
+    wcpmBenchmark,
+    comprehension: { items, plusAt },
+    profiles: TALA_PROFILES,
+    readingsPerMonth: 10,
+    philiriEquivalent: TALA_PHILIRI_EQUIVALENT,
+  };
+}
+
+// DM 373 s.2026, Enclosure 1.
+export const TALA_G1 = tala(45, 5, 4);
+export const TALA_G2 = tala(75, 5, 4);
+export const TALA_G3 = tala(95, 8, 6);
+export const TALA_G4 = tala(115, 10, 8);
+export const TALA_G5 = tala(125, 10, 8);
+export const TALA_G6 = tala(140, 10, 8);
+
 /** Everything seeded into scoring_rules, keyed as (tool, grade_level, version). */
 export const SEED_RULES = [
   { tool: "crla", grade_level: 1, version: "CRLA2v1", rules: CRLA_G1 },
@@ -371,4 +403,10 @@ export const SEED_RULES = [
   { tool: "philiri", grade_level: 4, version: "PhilIRIv1", rules: PHILIRI_G4 },
   { tool: "philiri", grade_level: 5, version: "PhilIRIv1", rules: PHILIRI_G5 },
   { tool: "philiri", grade_level: 6, version: "PhilIRIv1", rules: PHILIRI_G6 },
+  { tool: "tala", grade_level: 1, version: "TALA-DM373s2026", rules: TALA_G1 },
+  { tool: "tala", grade_level: 2, version: "TALA-DM373s2026", rules: TALA_G2 },
+  { tool: "tala", grade_level: 3, version: "TALA-DM373s2026", rules: TALA_G3 },
+  { tool: "tala", grade_level: 4, version: "TALA-DM373s2026", rules: TALA_G4 },
+  { tool: "tala", grade_level: 5, version: "TALA-DM373s2026", rules: TALA_G5 },
+  { tool: "tala", grade_level: 6, version: "TALA-DM373s2026", rules: TALA_G6 },
 ] as const;

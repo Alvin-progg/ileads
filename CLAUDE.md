@@ -31,13 +31,14 @@ Build order: follow `ILEADS-scrum-backlog.md` tickets #1–18 strictly in order 
 - **Roles enforced by RLS, not just UI.** `head` sees all; `teacher` sees only assigned grade levels (a teacher can hold 2+ grades). Grade access comes from `teacher_assignments` (grade 0 = Kinder), never from `profiles.is_special` — that column is the head's "special teacher" display label and grants nothing.
 - **Entry grids are keyboard-first** (Tab/Enter navigation), autosave per row with a visible saved/saving/failed indicator and retry on failure.
 - **District exports fill the blank official .xlsx templates cell-by-cell** — never rebuild the layouts.
-- **Unique keys:** `learners.lrn` (12 digits); `crla(learner, round, language)`; `rma(learner, round)`; `exam(learner, round, learning_area)`.
+- **Unique keys:** `learners.lrn` (12 digits); `crla(learner, round, language)`; `rma(learner, round)`; `exam(learner, round, learning_area)`; `tala(learner, month)`.
 
 ## Assessment domain
 
 - **CRLA** (reading, G1–3), per language — G1: MT; G2: MT+FIL; G3: MT+FIL+ENG. Raw inputs: task1, task2L/2H, story#, miscues, words read, time, comprehension. Computed: total, WPM, fluency%, Reading Level (Full/Moderate/Light Refresher, Grade Ready), Reading Profile (Low/High Emerging, Developing, Transitioning, At Grade Level).
 - **RMA** (math, all grades): per-task raw scores (G3: Tasks A–H, max 2,1,2,3,3,2,3,4 = 20). Computed: total, %, Proficiency Level (Emerging Not/Low Proficient, Developing, Transitioning, At Grade Level).
 - **Phil-IRI** (reading, G4–6): pre/post reading level (Independent/Instructional/Frustration/Non-Reader). Spec provisional.
+- **TALA** (Project TALA, DM 373 s.2026, G1–6): monthly, one row per learner per month (not `assessment_rounds`). Raw WCPM, comprehension score, frequency. Computed: Speed S±, Comprehension C±, Reading Profile → Intervention Program, Monthly Status vs previous month, TALA 10 (frequency ≥ 10). Rules in `scoring_rules` tool `tala`, version `TALA-DM373s2026`. Spec: `docs/specs/project-tala-tracker.md`.
 - **Exams:** raw score per subject per quarter, score ≤ HPS. Computed: Mean, SD, MPS per class per subject (MATATAG subject names).
 
 ## Prototype scope exclusions
