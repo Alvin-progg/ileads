@@ -1,7 +1,9 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { GRADE_LEVELS } from "@/lib/grades";
 
-export async function getViewer() {
+// cache(): layout and page share one lookup per request instead of repeating it.
+export const getViewer = cache(async function getViewer() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -35,4 +37,4 @@ export async function getViewer() {
     schoolId: profile?.school_id ?? null,
     school: school ?? null,
   };
-}
+});

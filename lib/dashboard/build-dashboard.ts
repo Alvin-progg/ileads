@@ -138,13 +138,78 @@ export async function buildDashboard(
   const philiriGrades = PHILIRI_GRADES.filter((g) => scope.includes(g));
   const examGrades = EXAM_GRADES.filter((g) => scope.includes(g));
 
-  const { data: learnersData } = await supabase
-    .from("learners")
-    .select("id, lrn, last_name, first_name, sex, grade_level")
-    .eq("status", "enrolled")
-    .order("last_name")
-    .order("first_name");
-  const learners = (learnersData ?? []) as Learner[];
+  async function roundsFor(tool: string): Promise<Round[]> {
+    const { data } = await supabase
+      .from("assessment_rounds")
+      .select("id, name, sequence")
+      .eq("tool", tool)
+      .order("sequence");
+    return (data ?? []) as Round[];
+  }
+
+  const crlaRulesByGrade = new Map<number, CrlaRules | null>();
+  const rmaRulesByGrade = new Map<number, RmaRules | null>();
+  const philiriRulesByGrade = new Map<number, PhiliriRules | null>();
+  const teacherNamesByGrade = new Map<number, string[]>();
+
+  // Every query here is independent, so they all run at once. The query
+  // builders are lazy thenables: nothing is sent until Promise.all awaits them.
+  const [
+    { data: allLearnersData },
+    crlaRounds,
+    rmaRounds,
+    philiriRounds,
+    examRounds,
+    { data: crlaRowsData },
+    { data: rmaRowsData },
+    { data: philiriRowsData },
+    { data: examRowsData },
+    { data: learningAreasData },
+  ] = await Promise.all([
+    // Every status: enrolled learners feed the grids, all of them feed the
+    // learner-count-by-status stat.
+    supabase
+      .from("learners")
+      .select("id, lrn, last_name, first_name, sex, grade_level, status")
+      .order("last_name")
+      .order("first_name"),
+    roundsFor("crla"),
+    roundsFor("rma"),
+    roundsFor("philiri"),
+    roundsFor("exam"),
+    supabase
+      .from("crla_results")
+      .select(
+        "learner_id, round_id, language, task1, task2l, task2h, story_no, miscues, reading_secs, comprehension_correct"
+      ),
+    supabase.from("rma_results").select("learner_id, round_id, task_scores"),
+    supabase
+      .from("philiri_results")
+      .select(
+        "learner_id, round_id, language, word_count, miscues, comprehension_items, comprehension_correct"
+      ),
+    supabase.from("exam_results").select("learner_id, round_id, learning_area_id, score"),
+    supabase
+      .from("learning_areas")
+      .select("id, name, grade_level, sequence, hps_per_quarter")
+      .in("grade_level", scope)
+      .order("sequence"),
+    ...crlaGrades.map(async (g) => {
+      crlaRulesByGrade.set(g, await tryGetRules(() => getCrlaRules(supabase, g)));
+    }),
+    ...rmaGrades.map(async (g) => {
+      rmaRulesByGrade.set(g, await tryGetRules(() => getRmaRules(supabase, g)));
+    }),
+    ...philiriGrades.map(async (g) => {
+      philiriRulesByGrade.set(g, await tryGetRules(() => getPhiliriRules(supabase, g)));
+    }),
+    ...scope.map(async (g) => {
+      teacherNamesByGrade.set(g, await getGradeTeacherNames(supabase, g));
+    }),
+  ]);
+
+  const allLearners = (allLearnersData ?? []) as (Learner & { status: string })[];
+  const learners: Learner[] = allLearners.filter((l) => l.status === "enrolled");
 
   const learnerById = new Map(learners.map((l) => [l.id, l]));
   const learnersByGrade = new Map<number, Learner[]>();
@@ -155,10 +220,8 @@ export async function buildDashboard(
   }
   const gradeOf = (learnerId: string) => learnerById.get(learnerId)?.grade_level;
 
-  // Every status, not just "enrolled" — for the learner-count-by-status stat.
-  const { data: statusData } = await supabase.from("learners").select("grade_level, status");
   const statusCountsByGrade = new Map<number, StatusCounts>();
-  for (const row of (statusData ?? []) as { grade_level: number; status: string }[]) {
+  for (const row of allLearners) {
     if (!scope.includes(row.grade_level)) continue;
     const counts =
       statusCountsByGrade.get(row.grade_level) ??
@@ -168,39 +231,6 @@ export async function buildDashboard(
     else if (row.status === "dropped") counts.dropped += 1;
     statusCountsByGrade.set(row.grade_level, counts);
   }
-
-  async function roundsFor(tool: string): Promise<Round[]> {
-    const { data } = await supabase
-      .from("assessment_rounds")
-      .select("id, name, sequence")
-      .eq("tool", tool)
-      .order("sequence");
-    return (data ?? []) as Round[];
-  }
-
-  const [crlaRounds, rmaRounds, philiriRounds, examRounds] = await Promise.all([
-    roundsFor("crla"),
-    roundsFor("rma"),
-    roundsFor("philiri"),
-    roundsFor("exam"),
-  ]);
-
-  const { data: crlaRowsData } = await supabase
-    .from("crla_results")
-    .select(
-      "learner_id, round_id, language, task1, task2l, task2h, story_no, miscues, reading_secs, comprehension_correct"
-    );
-  const { data: rmaRowsData } = await supabase
-    .from("rma_results")
-    .select("learner_id, round_id, task_scores");
-  const { data: philiriRowsData } = await supabase
-    .from("philiri_results")
-    .select(
-      "learner_id, round_id, language, word_count, miscues, comprehension_items, comprehension_correct"
-    );
-  const { data: examRowsData } = await supabase
-    .from("exam_results")
-    .select("learner_id, round_id, learning_area_id, score");
 
   const crlaRows = (crlaRowsData ?? []) as CrlaRow[];
   const rmaRows = (rmaRowsData ?? []) as RmaRow[];
@@ -229,32 +259,7 @@ export async function buildDashboard(
   const philiriRowsByGrade = byGrade(philiriRows);
   const examRowsByGrade = byGrade(examRows);
 
-  const { data: learningAreasData } = await supabase
-    .from("learning_areas")
-    .select("id, name, grade_level, sequence, hps_per_quarter")
-    .in("grade_level", scope)
-    .order("sequence");
   const learningAreas = learningAreasData ?? [];
-
-  const crlaRulesByGrade = new Map<number, CrlaRules | null>();
-  const rmaRulesByGrade = new Map<number, RmaRules | null>();
-  const philiriRulesByGrade = new Map<number, PhiliriRules | null>();
-  const teacherNamesByGrade = new Map<number, string[]>();
-
-  await Promise.all([
-    ...crlaGrades.map(async (g) => {
-      crlaRulesByGrade.set(g, await tryGetRules(() => getCrlaRules(supabase, g)));
-    }),
-    ...rmaGrades.map(async (g) => {
-      rmaRulesByGrade.set(g, await tryGetRules(() => getRmaRules(supabase, g)));
-    }),
-    ...philiriGrades.map(async (g) => {
-      philiriRulesByGrade.set(g, await tryGetRules(() => getPhiliriRules(supabase, g)));
-    }),
-    ...scope.map(async (g) => {
-      teacherNamesByGrade.set(g, await getGradeTeacherNames(supabase, g));
-    }),
-  ]);
 
   const monitoring: MonitoringRow[] = [];
   const trackerCellCounts = { complete: 0, incomplete: 0 };

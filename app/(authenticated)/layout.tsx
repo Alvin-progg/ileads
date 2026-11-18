@@ -16,16 +16,20 @@ export default async function AuthenticatedLayout({
   // The tour's learner-profile step needs a concrete id to route to. Heads
   // see this step too now, so this runs for both roles — a head's
   // allowedGrades already covers every grade level.
-  const supabase = await createClient();
-  const { data: sampleLearner } = await supabase
-    .from("learners")
-    .select("id")
-    .eq("status", "enrolled")
-    .in("grade_level", viewer.allowedGrades)
-    .order("last_name")
-    .limit(1)
-    .maybeSingle();
-  const sampleLearnerId = sampleLearner?.id ?? null;
+  // Only the first-run tour needs this; skipping it saves a query per navigation.
+  let sampleLearnerId: string | null = null;
+  if (!viewer.hasSeenTour) {
+    const supabase = await createClient();
+    const { data: sampleLearner } = await supabase
+      .from("learners")
+      .select("id")
+      .eq("status", "enrolled")
+      .in("grade_level", viewer.allowedGrades)
+      .order("last_name")
+      .limit(1)
+      .maybeSingle();
+    sampleLearnerId = sampleLearner?.id ?? null;
+  }
 
   const showsFor = (grades: number[]) =>
     grades.some((g) => viewer.allowedGrades.includes(g));

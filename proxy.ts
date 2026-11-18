@@ -19,6 +19,12 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // The role only matters for the home redirect and the /admin guard; every
+  // other route skips this query.
+  const needsRole =
+    pathname === "/" || pathname === "/login" || pathname.startsWith("/admin");
+  if (!needsRole) return response;
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
